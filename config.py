@@ -1,2 +1,0 @@
-BOT_TOKEN = ""
-DB_CONNECTION_URL = ""
