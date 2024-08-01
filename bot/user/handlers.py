@@ -10,10 +10,10 @@ from typing import List
 import bot.user.texts as texts
 import bot.user.keyboards as keyboards
 import bot.user.utils as utils
-import config
 
 from bot.db.models.messages import Messages as MessagesModel
 from bot.db.models.statements import Statements as StatementsModel
+from bot.db.models.users import Users as UsersModel
 
 import bot.db.crud.users as crud_users
 import bot.db.crud.messages as crud_messages
@@ -123,7 +123,7 @@ async def send_pretty_statement(user_id, statement_id):
             text=answer,
             reply_markup=keyboard
         )
-    if len(multi) == 1:
+    elif len(multi) == 1:
         multimedia_type, file_id = multi[0]
         if multimedia_type == "photo":
             await bot.send_message(
@@ -283,6 +283,7 @@ async def my_statements_callback(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
     user_id = int(callback.from_user.id)
+
     user_statements = crud_users.get_user_statements(user_id)
     if user_statements is None:
         return await callback.message.answer(
@@ -292,8 +293,7 @@ async def my_statements_callback(callback: CallbackQuery, state: FSMContext):
     user_statements = user_statements.split()
     user_statements = [crud_statements.get_statement_by_id(int(i)) for i in user_statements]
     sort_statements = utils.sort_by_date(user_statements)
-
-    page = 1 if len(user_statements) != 0 else 0
+    page = 1 if len(sort_statements) != 0 else 0
     await callback.message.answer(
         text=texts.user_statements_text,
         reply_markup=keyboards.user_statements_keyboard(sort_statements, page)
@@ -465,7 +465,7 @@ async def new_statement_description(message: Message, state: FSMContext, album: 
     admins += crud_superusers.get_superadmins()
     for admin_id in admins:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Новый пользователь оставил новую заявку",
             chat_id=admin_id
         )
 
@@ -687,7 +687,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку на Подачу показаний счетчиков",
+            text="Пользователь подал показания счетчиков",
             chat_id=accountant_id
         )
 
@@ -773,7 +773,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Пользователь подал показания счетчиков",
             chat_id=accountant_id
         )
 
@@ -847,7 +847,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Пользователь подал показания счетчиков",
             chat_id=accountant_id
         )
 
@@ -913,7 +913,7 @@ async def request_for_other_documentation_request(message: Message, state: FSMCo
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Пользователь оставил заявку на запрос прочей документации",
             chat_id=accountant_id
         )
 
@@ -989,7 +989,7 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Пользователь запросил начисление КУ",
             chat_id=accountant_id
         )
 
@@ -1029,7 +1029,7 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Пользователь запросил акт сверки",
             chat_id=accountant_id
         )
 
@@ -1070,6 +1070,24 @@ async def request_for_reconciliation_report_callback(callback: CallbackQuery, st
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Новый пользователь оставил заявку",
+            text="Пользователь оставил запрос акта и сверки",
             chat_id=accountant_id
         )
+
+
+@router.message(Command("create_me"))
+async def create_me(message: Message):
+    user = UsersModel(
+        user_id=None,
+        name="Амир Князев",
+        phone="79393167376",
+        inn="123",
+        due_date=1,
+        meter_notification=True,
+        rent_notification=True,
+        auth=False,
+        was_deleted=False,
+        statements=None,
+        offices="1 2",
+    )
+    crud_users.create_user(user)

@@ -5,6 +5,7 @@ from bot.db.schemas.statements import Statements
 import bot.db.crud.offices as crud_offices
 import bot.db.crud.statements as crud_statements
 
+
 def user_statements_keyboard(user_statements: list[Statements], page):
     buttons = []
     ind = (page - 1) * 8
