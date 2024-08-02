@@ -95,16 +95,16 @@ def create_start_db():
     )
     crud_superusers.create_superuser(superuser)
 
-    superuser = SuperUsers(
-        user_id=85288369,
-        name="Егор",
-        superuser_type=1
-    )
-    crud_superusers.create_superuser(superuser)
+    # superuser = SuperUsers(
+    #     user_id=85288369,
+    #     name="Егор",
+    #     superuser_type=1
+    # )
+    # crud_superusers.create_superuser(superuser)
 
     superuser = SuperUsers(
         user_id=128518307,
-        name="Альберт",
-        superuser_type=2
+        name="Альберт М",
+        superuser_type=1
     )
     crud_superusers.create_superuser(superuser)

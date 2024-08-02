@@ -465,7 +465,7 @@ async def new_statement_description(message: Message, state: FSMContext, album: 
     admins += crud_superusers.get_superadmins()
     for admin_id in admins:
         await bot.send_message(
-            text="Новый пользователь оставил новую заявку",
+            text="Пользователь оставил новую заявку",
             chat_id=admin_id
         )
 
