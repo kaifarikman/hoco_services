@@ -75,7 +75,7 @@ def admin_menu_keyboard(statements: list[Statements], page):
     configuration_field = [left_button, middle_button, right_button]
     buttons.append(configuration_field)
 
-    newsletter = InlineKeyboardButton(text="Рассылка", callback_data="admin_newsletter")
+    newsletter = InlineKeyboardButton(text="Рассылка", callback_data="send_newsletter_to_user")
     archive = InlineKeyboardButton(text="Архив", url="https://t.me/+EwHO3avMGPZkNTNi")
     low_menu = [newsletter, archive]
     buttons.append(low_menu)
@@ -114,30 +114,25 @@ def statement_keyboard(statement_id, superuser_type):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def newsletter_choice(statements, page, user_id):
+def newsletter_choice(newsletters, page, user_id):
     buttons = []
-    ind = (page - 1) * 8
-    for _ in range(8):
+    static_count = 30
+    ind = (page - 1) * static_count
+    for _ in range(static_count):
         try:
-            statement = statements[ind]
-            office_id = int(statement.office_id)
-            address = crud_offices.get_office_address_by_id(office_id)
-            if statement.admin_id is None:
-                text = f"{address}, "
-            else:
-                text = f"🔵{address}, "
-            if statement.theme is None:
-                text += f"№{office_id}"
-            else:
-                text += f"{statement.theme}"
-            callback_data = f"admin_newsletter_{statement.id}"
-            button = [InlineKeyboardButton(text=text, callback_data=callback_data)]
-            buttons.append(button)
+            office_id, user_id = map(int, newsletters[ind])
+            office = crud_offices.read_office(office_id)
+            text = f"{office.address}, №{office.office_number}"
+            callback_data = f"send_newsletter_{office.id}_{user_id}"
+            buttons.append([InlineKeyboardButton(text=text, callback_data=callback_data)])
+
         except Exception as e:
-            '''рализация indexError , для 8 кнопок без мучений и ифов'''
+            '''рализация indexError , для static_count кнопок без мучений и ифов'''
             ...
         ind += 1
-    pages_count = len(statements) // 8 + 1 if len(statements) % 8 != 0 else len(statements) // 8
+    pages_count = len(newsletters) // static_count
+    if len(newsletters) % static_count != 0:
+        pages_count += 1
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1
     left_button = InlineKeyboardButton(text="⬅️", callback_data=f"change_newsletter_data_{left_page}")

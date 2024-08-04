@@ -1,4 +1,5 @@
 from datetime import datetime
+from bot.db.schemas.users import Users as UsersDB
 
 
 def sort_statements(statements):
@@ -14,3 +15,10 @@ def convert_date(date: datetime):
     return date.strftime('%d.%m.%Y, %H:%M')
 
 
+def get_newsletters(users: list[UsersDB]):
+    newsletters = list()
+    for user in users:
+        offices = user.offices.split()
+        for office in offices:
+            newsletters.append([office, user.user_id])
+    return newsletters

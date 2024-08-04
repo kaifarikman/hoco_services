@@ -50,21 +50,21 @@ def create_start_db():
 
     office1 = Offices(
         address="ул. Раскольникова, 29",
-        office_number=5,
+        office_number="Риелторы (310)",
         coder_number=None,
         meters="1 2"
     )
 
     office2 = Offices(
         address="просп. Сююмбике, 40",
-        office_number=9,
+        office_number="Турагентство (106)",
         coder_number=None,
         meters="1"
     )
 
     office3 = Offices(
         address="Пролетарский пр., 10Б",
-        office_number=17,
+        office_number="Логопед (409)",
         coder_number=None,
         meters="2"
     )
@@ -72,21 +72,6 @@ def create_start_db():
     crud_offices.create_office(office1)
     crud_offices.create_office(office2)
     crud_offices.create_office(office3)
-
-    user = Users(
-        user_id=None,
-        name="Альберт",
-        phone="79093074556",
-        inn="123",
-        due_date=1,
-        meter_notification=True,
-        rent_notification=True,
-        auth=False,
-        was_deleted=False,
-        statements=None,
-        offices="1 2",
-    )
-    crud_users.create_user(user)
 
     superuser = SuperUsers(
         user_id=6980676960,
@@ -102,9 +87,23 @@ def create_start_db():
     # )
     # crud_superusers.create_superuser(superuser)
 
-    superuser = SuperUsers(
-        user_id=128518307,
-        name="Альберт М",
-        superuser_type=1
-    )
-    crud_superusers.create_superuser(superuser)
+    # superuser = SuperUsers(
+    #     user_id=128518307,
+    #     name="Альберт М",
+    #     superuser_type=1
+    # )
+    # crud_superusers.create_superuser(superuser)
+    # user = Users(
+    #     user_id=None,
+    #     name="Альберт",
+    #     phone="79093074556",
+    #     inn="123",
+    #     due_date=1,
+    #     meter_notification=True,
+    #     rent_notification=True,
+    #     auth=False,
+    #     was_deleted=False,
+    #     statements=None,
+    #     offices="1 2",
+    # )
+    # crud_users.create_user(user)

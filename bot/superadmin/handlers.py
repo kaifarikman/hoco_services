@@ -120,7 +120,6 @@ async def send_to_archive(statement_id):
             else:
                 element_add = InputMediaDocument(media=file_id, caption=None)
             media_group.append(element_add)
-        # TODO: rofllll
         await bot.send_message(
             chat_id=user_id,
             text=answer,
@@ -192,7 +191,7 @@ async def change_data_(callback: CallbackQuery, state: FSMContext):
     page = int(data[-1])
     statements = crud_statements.get_statements()
     sort_statements = utils.sort_statements(statements)
-
+    # TODO: 196 line - is error! big error!
     await callback.message.edit_reply_markup(
         reply_markup=keyboards.superadmin_keyboard(sort_statements, page)
     )

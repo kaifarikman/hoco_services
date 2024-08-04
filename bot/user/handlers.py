@@ -261,7 +261,7 @@ async def phone_number_(message: Message, state: FSMContext):
     if not crud_users.get_user_by_inn_and_phone(inn, number):
         return await message.answer(
             text=texts.no_access,
-            reply_markup=keyboards.back_keyboard
+            reply_markup=keyboards.remove_reply_markup
         )
 
     crud_users.add_user_id(inn, number, user_id)
@@ -290,15 +290,14 @@ async def my_statements_callback(callback: CallbackQuery, state: FSMContext):
             text=texts.no_statements_yet,
             reply_markup=keyboards.back_keyboard
         )
-    user_statements = user_statements.split()
-    user_statements = [crud_statements.get_statement_by_id(int(i)) for i in user_statements]
+    user_statements = list(map(int, user_statements.split()))
+    user_statements = [crud_statements.get_statement_by_id(i) for i in user_statements]
     sort_statements = utils.sort_by_date(user_statements)
     page = 1 if len(sort_statements) != 0 else 0
     await callback.message.answer(
         text=texts.user_statements_text,
         reply_markup=keyboards.user_statements_keyboard(sort_statements, page)
     )
-    # get user_statements and put it into keyboard
 
 
 @router.callback_query(F.data.startswith("user_statements_keyboard_data_"))
@@ -312,8 +311,8 @@ async def user_statements_keyboard_data_(callback: CallbackQuery):
             text=texts.no_statements_yet,
             reply_markup=keyboards.back_keyboard
         )
-    user_statements = user_statements.split()
-    user_statements = [crud_statements.get_statement_by_id(int(i)) for i in user_statements]
+    user_statements = list(map(int, user_statements.split()))
+    user_statements = [crud_statements.get_statement_by_id(i) for i in user_statements]
     sort_statements = utils.sort_by_date(user_statements)
     page = int(callback.data.split("_")[-1])
     await callback.message.edit_reply_markup(

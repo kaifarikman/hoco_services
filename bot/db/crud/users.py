@@ -32,13 +32,10 @@ def read_user(user_id):
 
 
 def get_user_auth_by_id(user_id: int):
-    session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        user_id=user_id
-    ).first()
-    if not query:
+    user = read_user(user_id)
+    if not user:
         return False
-    return bool(query.auth)
+    return bool(user.auth)
 
 
 def get_user_by_inn_and_phone(inn, number):
@@ -79,16 +76,16 @@ def add_statement(user_id, statement_id):
 
 
 def get_user_statements(user_id):
-    session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        user_id=user_id
-    ).first()
-    return query.statements
+    user = read_user(user_id)
+    return user.statements
 
 
 def get_user_offices(user_id):
+    user = read_user(user_id)
+    return user.offices
+
+
+def get_all_users():
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        user_id=user_id
-    ).first()
-    return query.offices
+    query = session.query(UsersDB).all()
+    return query

@@ -393,57 +393,66 @@ async def answer_to_user(message: Message, state: FSMContext, album: List[Messag
     )
 
 
-@router.callback_query(F.data == "admin_newsletter")
-async def admin_newsletter(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data == "send_newsletter_to_user")
+async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
-    statements = crud_statements.get_statements()
-    user_id = int(callback.from_user.id)
-    sort_statements = utils.sort_statements(statements)
 
-    page = 1 if len(sort_statements) != 0 else 0
+    users = crud_users.get_all_users()
+    newsletters = utils.get_newsletters(users)
+    user_id = int(callback.from_user.id)
+
+    page = 1 if len(newsletters) != 0 else 0
 
     await callback.message.answer(
         text=texts.choice_newsletter_text,
-        reply_markup=keyboards.newsletter_choice(sort_statements, page, user_id)
+        reply_markup=keyboards.newsletter_choice(newsletters, page, user_id)
+    )
+
+
+@router.callback_query(F.data.startswith("change_newsletter_data_"))
+async def change_data_(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    data = str(callback.data).split("_")
+    page = int(data[-1])
+
+    users = crud_users.get_all_users()
+    newsletters = utils.get_newsletters(users)
+    user_id = int(callback.from_user.id)
+    await callback.message.edit_reply_markup(
+        reply_markup=keyboards.newsletter_choice(newsletters, page, user_id)
     )
 
 
 class Newsletter(StatesGroup):
-    statement_id = State()
+    newsletter_id = State()
     newsletter_text = State()
 
 
-@router.callback_query(F.data.startswith("admin_newsletter_"))
-async def admin_newsletter(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data.startswith("send_newsletter_"))
+async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
-
-    user_id = int(callback.from_user.id)
-    statement_id = int(callback.data.split("_")[-1])
-    statement = crud_statements.get_statement_by_id(statement_id)
-    office_id = int(statement.office_id)
+    """send_newsletter_{office.id}_{user_id}"""
+    office_id, user_id = map(int, callback.data.split("_")[-2:])
     address = crud_offices.get_office_address_by_id(office_id)
-
     await callback.message.answer(
         text=texts.input_newsletter_text(address),
         reply_markup=keyboards.go_to_admin_menu_keyboard(user_id)
     )
     await state.set_state(Newsletter.newsletter_text)
-    await state.update_data({"statement_id": statement_id})
+    await state.update_data({"newsletter_id": [office_id, user_id]})
 
 
 @router.message(Newsletter.newsletter_text)
 async def newsletter_text_cmd(message: Message, state: FSMContext):
     data = await state.get_data()
     newsletter_text = message.text
-    statement_id = data["statement_id"]
-
-    statement = crud_statements.get_statement_by_id(statement_id)
-    user_id = statement.user_id
-
+    newsletter_id = data["newsletter_id"]
+    chat_id = newsletter_id[1]
+    user_id = int(message.from_user.id)
     await bot.send_message(
-        chat_id=user_id,
+        chat_id=chat_id,
         text=newsletter_text,
     )
     await message.answer(
@@ -451,17 +460,3 @@ async def newsletter_text_cmd(message: Message, state: FSMContext):
         reply_markup=keyboards.go_to_admin_menu_keyboard(user_id)
     )
     await state.clear()
-
-
-@router.callback_query(F.data.startswith("change_newsletter_data_"))
-async def change_data_(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    data = str(callback.data).split("_")
-    user_id = int(callback.from_user.id)
-    page = int(data[-1])
-    statements = crud_statements.get_statements()
-    sort_statements = utils.sort_statements(statements)
-
-    await callback.message.edit_reply_markup(
-        reply_markup=keyboards.newsletter_choice(sort_statements, page, user_id)
-    )
