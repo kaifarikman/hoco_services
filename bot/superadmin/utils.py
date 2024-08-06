@@ -19,6 +19,8 @@ def get_newsletters(users):
     for user in users:
         if user.was_deleted:
             continue
+        if user.offices is None:
+            continue
         offices = user.offices.split()
         for office in offices:
             newsletters.append([office, user.user_id])

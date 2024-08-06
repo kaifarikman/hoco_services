@@ -103,7 +103,7 @@ def newsletter_choice(newsletters, page):
     ind = (page - 1) * static_count
     for _ in range(static_count):
         try:
-            office_id, user_id = map(int, newsletters[ind])
+            office_id, user_id = newsletters[ind]
             office = crud_offices.read_office(office_id)
             text = f"{office.address}, №{office.office_number}"
             callback_data = f"send_newsletter_{office.id}_{user_id}"
