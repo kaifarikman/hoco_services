@@ -18,17 +18,13 @@ def create_office(office_db: Offices):
 
 def read_office(office_id: int):
     session = sessionmaker(engine)()
-    query = session.query(OfficesDB).filter_by(
-        id=office_id
-    ).first()
+    query = session.query(OfficesDB).filter_by(id=office_id).first()
     return query
 
 
 def update_office(office_id: int, *args):
     session = sessionmaker(engine)()
-    query = session.query(OfficesDB).filter_by(
-        id=office_id
-    ).first()
+    query = session.query(OfficesDB).filter_by(id=office_id).first()
     # args - update_parametr
 
 

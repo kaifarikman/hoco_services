@@ -5,16 +5,12 @@ import bot.db.crud.offices as crud_offices
 import bot.db.crud.superusers as crud_superusers
 
 user_menu_buttons = [
-    [
-        InlineKeyboardButton(text="Выйти в главное меню", callback_data="start")
-    ]
+    [InlineKeyboardButton(text="Выйти в главное меню", callback_data="start")]
 ]
 user_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=user_menu_buttons)
 
 superadmin_menu_buttons = [
-    [
-        InlineKeyboardButton(text="Выйти в главное меню", callback_data="superadmin")
-    ]
+    [InlineKeyboardButton(text="Выйти в главное меню", callback_data="superadmin")]
 ]
 superadmin_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=superadmin_menu_buttons)
 
@@ -57,7 +53,7 @@ def superadmin_keyboard(statements: list[Statements], page):
             button = [InlineKeyboardButton(text=text, callback_data=callback_data)]
             buttons.append(button)
         except Exception as e:
-            '''рализация indexError , для static_count кнопок без мучений и ифов'''
+            """рализация indexError , для static_count кнопок без мучений и ифов"""
             ...
         ind += 1
     pages_count = len(statements) // static_count + 1
@@ -65,14 +61,22 @@ def superadmin_keyboard(statements: list[Statements], page):
         pages_count = len(statements) // static_count
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1
-    left_button = InlineKeyboardButton(text="⬅️", callback_data=f"superadmin_change_data_{left_page}")
-    middle_button = InlineKeyboardButton(text=f"{page} из {pages_count}", callback_data="dummy")
-    right_button = InlineKeyboardButton(text="➡️", callback_data=f"superadmin_change_data_{right_page}")
+    left_button = InlineKeyboardButton(
+        text="⬅️", callback_data=f"superadmin_change_data_{left_page}"
+    )
+    middle_button = InlineKeyboardButton(
+        text=f"{page} из {pages_count}", callback_data="dummy"
+    )
+    right_button = InlineKeyboardButton(
+        text="➡️", callback_data=f"superadmin_change_data_{right_page}"
+    )
 
     configuration_field = [left_button, middle_button, right_button]
     buttons.append(configuration_field)
 
-    newsletter = InlineKeyboardButton(text="Рассылка", callback_data="superadmin_newsletter")
+    newsletter = InlineKeyboardButton(
+        text="Рассылка", callback_data="superadmin_newsletter"
+    )
     archive = InlineKeyboardButton(text="Архив", url="https://t.me/+EwHO3avMGPZkNTNi")
     give_role = InlineKeyboardButton(text="...", callback_data="superadmin_give_role")
     low_menu = [newsletter, archive, give_role]
@@ -84,11 +88,11 @@ def seriously_delete_keyboard(statement_id):
     buttons = [
         [
             InlineKeyboardButton(text="Нет", callback_data="superadmin_no_complete"),
-            InlineKeyboardButton(text="Да", callback_data=f"superadmin_complete_{statement_id}")
+            InlineKeyboardButton(
+                text="Да", callback_data=f"superadmin_complete_{statement_id}"
+            ),
         ],
-        [
-            InlineKeyboardButton(text="Главное меню", callback_data="superadmin")
-        ]
+        [InlineKeyboardButton(text="Главное меню", callback_data="superadmin")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -103,10 +107,12 @@ def newsletter_choice(newsletters, page):
             office = crud_offices.read_office(office_id)
             text = f"{office.address}, №{office.office_number}"
             callback_data = f"send_newsletter_{office.id}_{user_id}"
-            buttons.append([InlineKeyboardButton(text=text, callback_data=callback_data)])
+            buttons.append(
+                [InlineKeyboardButton(text=text, callback_data=callback_data)]
+            )
 
         except Exception as e:
-            '''рализация indexError , для static_count кнопок без мучений и ифов'''
+            """рализация indexError , для static_count кнопок без мучений и ифов"""
             ...
         ind += 1
     pages_count = len(newsletters) // static_count
@@ -114,9 +120,15 @@ def newsletter_choice(newsletters, page):
         pages_count += 1
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1
-    left_button = InlineKeyboardButton(text="⬅️", callback_data=f"change_newsletter_data_{left_page}")
-    middle_button = InlineKeyboardButton(text=f"{page} из {pages_count}", callback_data="dummy")
-    right_button = InlineKeyboardButton(text="➡️", callback_data=f"change_newsletter_data_{right_page}")
+    left_button = InlineKeyboardButton(
+        text="⬅️", callback_data=f"change_newsletter_data_{left_page}"
+    )
+    middle_button = InlineKeyboardButton(
+        text=f"{page} из {pages_count}", callback_data="dummy"
+    )
+    right_button = InlineKeyboardButton(
+        text="➡️", callback_data=f"change_newsletter_data_{right_page}"
+    )
     configuration_field = [left_button, middle_button, right_button]
     buttons.append(configuration_field)
     menu = "superadmin"
@@ -127,11 +139,11 @@ def newsletter_choice(newsletters, page):
 
 give_role_buttons = [
     [
-        InlineKeyboardButton(text="Суперпользователи", callback_data="give_role_for_superusers")
+        InlineKeyboardButton(
+            text="Суперпользователи", callback_data="give_role_for_superusers"
+        )
     ],
-    [
-        InlineKeyboardButton(text="Пользователи", callback_data="give_role_for_users")
-    ],
+    [InlineKeyboardButton(text="Пользователи", callback_data="give_role_for_users")],
 ]
 
 give_role = InlineKeyboardMarkup(inline_keyboard=give_role_buttons)
@@ -143,28 +155,44 @@ def select_an_employee_for_settings(superusers):
         text = superuser.name
         callback_data = f"superuser_id_for_select_{superuser.id}"
         buttons.append([InlineKeyboardButton(text=text, callback_data=callback_data)])
-    buttons.append([InlineKeyboardButton(text="Добавить сотрудника", callback_data="add_new_superuser")])
-    buttons.append([InlineKeyboardButton(text="Выйти в меню", callback_data="superadmin")])
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text="Добавить сотрудника", callback_data="add_new_superuser"
+            )
+        ]
+    )
+    buttons.append(
+        [InlineKeyboardButton(text="Выйти в меню", callback_data="superadmin")]
+    )
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def select(superuser_id):
     buttons = [
         [
-            InlineKeyboardButton(text="Сделать админом", callback_data=f"change_to_admin_{superuser_id}")
+            InlineKeyboardButton(
+                text="Сделать админом", callback_data=f"change_to_admin_{superuser_id}"
+            )
         ],
         [
-            InlineKeyboardButton(text="Сделать бухгалтером", callback_data=f"change_to_accountant_{superuser_id}")
+            InlineKeyboardButton(
+                text="Сделать бухгалтером",
+                callback_data=f"change_to_accountant_{superuser_id}",
+            )
         ],
         [
-            InlineKeyboardButton(text="Сделать суперадмином", callback_data=f"change_to_superadmin_{superuser_id}")
+            InlineKeyboardButton(
+                text="Сделать суперадмином",
+                callback_data=f"change_to_superadmin_{superuser_id}",
+            )
         ],
         [
-            InlineKeyboardButton(text="Удалить сотрудника", callback_data=f"delete_person_{superuser_id}")
+            InlineKeyboardButton(
+                text="Удалить сотрудника", callback_data=f"delete_person_{superuser_id}"
+            )
         ],
-        [
-            InlineKeyboardButton(text="Выйти в меню", callback_data="superadmin")
-        ]
+        [InlineKeyboardButton(text="Выйти в меню", callback_data="superadmin")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -172,11 +200,9 @@ def select(superuser_id):
 go_to_pls_buttons = [
     [
         InlineKeyboardButton(text="Нет", callback_data="no_to_pls"),
-        InlineKeyboardButton(text="Да", callback_data="yes_go_to_pls")
+        InlineKeyboardButton(text="Да", callback_data="yes_go_to_pls"),
     ],
-    [
-        InlineKeyboardButton(text="Главное меню", callback_data="superadmin")
-    ]
+    [InlineKeyboardButton(text="Главное меню", callback_data="superadmin")],
 ]
 
 go_to_pls = InlineKeyboardMarkup(inline_keyboard=go_to_pls_buttons)
@@ -185,43 +211,37 @@ go_to_pls = InlineKeyboardMarkup(inline_keyboard=go_to_pls_buttons)
 def really_delete_person(superuser_id):
     buttons = [
         [
-            InlineKeyboardButton(text="Нет", callback_data=f"delete_really_no_{superuser_id}"),
-            InlineKeyboardButton(text="Да", callback_data=f"delete_really_yes_{superuser_id}")
+            InlineKeyboardButton(
+                text="Нет", callback_data=f"delete_really_no_{superuser_id}"
+            ),
+            InlineKeyboardButton(
+                text="Да", callback_data=f"delete_really_yes_{superuser_id}"
+            ),
         ],
-        [
-            InlineKeyboardButton(text="Главное меню", callback_data="superadmin")
-        ]
+        [InlineKeyboardButton(text="Главное меню", callback_data="superadmin")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 sent_user_id_bot_buttons = [
     [
-        InlineKeyboardButton(text="Узнать user_id пользователя", url="https://t.me/username_to_id_bot")
+        InlineKeyboardButton(
+            text="Узнать user_id пользователя", url="https://t.me/username_to_id_bot"
+        )
     ]
 ]
 sent_user_id_bot = InlineKeyboardMarkup(inline_keyboard=sent_user_id_bot_buttons)
 
 roles_buttons = [
-    [
-        InlineKeyboardButton(text="Суперадмин", callback_data="set_role_1")
-    ],
-    [
-        InlineKeyboardButton(text="Админ", callback_data="set_role_2")
-    ],
-    [
-        InlineKeyboardButton(text="Бухгалтер", callback_data="set_role_3")
-    ]
+    [InlineKeyboardButton(text="Суперадмин", callback_data="set_role_1")],
+    [InlineKeyboardButton(text="Админ", callback_data="set_role_2")],
+    [InlineKeyboardButton(text="Бухгалтер", callback_data="set_role_3")],
 ]
 roles = InlineKeyboardMarkup(inline_keyboard=roles_buttons)
 
 users_change_buttons = [
-    [
-        InlineKeyboardButton(text="Добавить пользователя", callback_data="add_new_user")
-    ],
-    [
-        InlineKeyboardButton(text="Удалить пользователя", callback_data="delete_user")
-    ],
+    [InlineKeyboardButton(text="Добавить пользователя", callback_data="add_new_user")],
+    [InlineKeyboardButton(text="Удалить пользователя", callback_data="delete_user")],
 ]
 
 users_change = InlineKeyboardMarkup(inline_keyboard=users_change_buttons)

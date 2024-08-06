@@ -12,6 +12,4 @@ class Statements(BaseModel):
     date_finish: datetime | None
     theme: str | None
     status: int
-    office_id: int | None # None if user have more than 1 office
-
-
+    office_id: int | None  # None if user have more than 1 office

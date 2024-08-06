@@ -7,4 +7,4 @@ def sort_by_date(statements: list[Statements]):
 
 
 def convert_date(date: datetime):
-    return date.strftime('%d.%m.%Y, %H:%M')
+    return date.strftime("%d.%m.%Y, %H:%M")

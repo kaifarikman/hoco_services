@@ -16,7 +16,7 @@ def create_statement(statement: Statements):
         date_finish=statement.date_finish,
         theme=statement.theme,
         status=statement.status,
-        office_id=statement.office_id
+        office_id=statement.office_id,
     )
     session.add(statement_db)
     session.commit()
@@ -31,26 +31,20 @@ def get_statements():
 
 def get_statement_by_id(statement_id):
     session = sessionmaker(engine)()
-    query = session.query(StatementsDB).filter_by(
-        id=statement_id
-    ).first()
+    query = session.query(StatementsDB).filter_by(id=statement_id).first()
     return query
 
 
 def update_theme(statement_id, theme):
     session = sessionmaker(engine)()
-    query = session.query(StatementsDB).filter_by(
-        id=statement_id
-    ).first()
+    query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.theme = theme
     session.commit()
 
 
 def update_messages(statement_id, message_id):
     session = sessionmaker(engine)()
-    query = session.query(StatementsDB).filter_by(
-        id=statement_id
-    ).first()
+    query = session.query(StatementsDB).filter_by(id=statement_id).first()
     if query.messages is None:
         query.messages = str(message_id)
     else:
@@ -60,26 +54,20 @@ def update_messages(statement_id, message_id):
 
 def change_status(statement_id, status):
     session = sessionmaker(engine)()
-    query = session.query(StatementsDB).filter_by(
-        id=statement_id
-    ).first()
+    query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.status = status
     session.commit()
 
 
 def set_date_run(statement_id, date):
     session = sessionmaker(engine)()
-    query = session.query(StatementsDB).filter_by(
-        id=statement_id
-    ).first()
+    query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.date_run = date
     session.commit()
 
 
 def set_date_finish(statement_id, date):
     session = sessionmaker(engine)()
-    query = session.query(StatementsDB).filter_by(
-        id=statement_id
-    ).first()
+    query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.date_finish = date
     session.commit()

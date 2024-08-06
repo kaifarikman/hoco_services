@@ -21,7 +21,9 @@ give_role = "Ваш функционал"
 select_an_employee_for_settings = "Выберите сотрудника для настроек"
 add_new_user_name_text = "Введите имя пользователя"
 add_new_user_inn_text = "Введите ИНН пользователя"
-add_new_user_phone_number_text = "Введите номер телефона пользователя.\nФормат: начинается с 79"
+add_new_user_phone_number_text = (
+    "Введите номер телефона пользователя.\nФормат: начинается с 79"
+)
 add_new_user_due_date_text = "Введите срок оплаты аренды пользователя"
 sent_new_superuser = "Отправьте user_id в телеграмме нового сотрудника"
 sent_new_superuser_user_id_please = "Отправьте user_id в числовом типе"

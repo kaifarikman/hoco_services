@@ -16,17 +16,13 @@ def create_meter(meter: Meters):
 
 def read_meter(meter_id):
     session = sessionmaker(engine)()
-    query = session.query(MetersDB).filter_by(
-        id=meter_id
-    ).first()
+    query = session.query(MetersDB).filter_by(id=meter_id).first()
     return query.meter_type, query.unit
 
 
 def update_meter(meter_id: int, meter_type: str, unit: str):
     session = sessionmaker(engine)()
-    query = session.query(MetersDB).filter_by(
-        id=meter_id
-    ).first()
+    query = session.query(MetersDB).filter_by(id=meter_id).first()
     query.meter_type = meter_type
     query.unit = unit
     session.commit()
@@ -41,15 +37,11 @@ def delete_meter(meter_id: int):
 
 def get_meter(meter_id):
     session = sessionmaker(engine)()
-    query = session.query(MetersDB).filter_by(
-        id=meter_id
-    ).first()
+    query = session.query(MetersDB).filter_by(id=meter_id).first()
     return query.meter_type, query.unit
 
 
 def get_meter_type_by_id(meter_id):
     session = sessionmaker(engine)()
-    query = session.query(MetersDB).filter_by(
-        id=meter_id
-    ).first()
+    query = session.query(MetersDB).filter_by(id=meter_id).first()
     return query.meter_type

@@ -9,7 +9,7 @@ def create_superuser(superuser: SuperUsers):
     superuser_db = SuperUsersDB(
         user_id=superuser.user_id,
         name=superuser.name,
-        superuser_type=superuser.superuser_type
+        superuser_type=superuser.superuser_type,
     )
     session.add(superuser_db)
     session.commit()
@@ -18,17 +18,13 @@ def create_superuser(superuser: SuperUsers):
 
 def read_superuser(superuser_id: int):
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        id=superuser_id
-    ).first()
+    query = session.query(SuperUsersDB).filter_by(id=superuser_id).first()
     return query
 
 
 def update_superuser(superuser_id: int, superuser_type: int):
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        id=superuser_id
-    ).first()
+    query = session.query(SuperUsersDB).filter_by(id=superuser_id).first()
     query.superuser_type = superuser_type
     session.commit()
 
@@ -42,9 +38,13 @@ def delete_superuser(superuser_id: int):
 
 def get_superuser(user_id, access_roles):
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        user_id=user_id,
-    ).first()
+    query = (
+        session.query(SuperUsersDB)
+        .filter_by(
+            user_id=user_id,
+        )
+        .first()
+    )
     if query is None:
         return False
 
@@ -55,9 +55,13 @@ def get_superuser(user_id, access_roles):
 
 def get_superuser_role(user_id):
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        user_id=user_id,
-    ).first()
+    query = (
+        session.query(SuperUsersDB)
+        .filter_by(
+            user_id=user_id,
+        )
+        .first()
+    )
     if query is None:
         return False
     return query.superuser_type
@@ -71,23 +75,17 @@ def get_superusers():
 
 def get_superadmins() -> list[int]:
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        superuser_type=1
-    ).all()
+    query = session.query(SuperUsersDB).filter_by(superuser_type=1).all()
     return [i.user_id for i in query]
 
 
 def get_admins() -> list[int]:
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        superuser_type=2
-    ).all()
+    query = session.query(SuperUsersDB).filter_by(superuser_type=2).all()
     return [i.user_id for i in query]
 
 
 def get_accountants() -> list[int]:
     session = sessionmaker(engine)()
-    query = session.query(SuperUsersDB).filter_by(
-        superuser_type=3
-    ).all()
+    query = session.query(SuperUsersDB).filter_by(superuser_type=3).all()
     return [i.user_id for i in query]

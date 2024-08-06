@@ -25,9 +25,7 @@ def create_user(user: Users):
 
 def read_user(user_id):
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        user_id=user_id
-    ).first()
+    query = session.query(UsersDB).filter_by(user_id=user_id).first()
     return query
 
 
@@ -40,17 +38,13 @@ def get_user_auth_by_id(user_id: int):
 
 def get_user_by_inn_and_phone(inn, number):
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        inn=inn, phone=number
-    ).first()
+    query = session.query(UsersDB).filter_by(inn=inn, phone=number).first()
     return bool(query)
 
 
 def get_user_by_phone_number(phone_number):
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        phone=phone_number
-    ).first()
+    query = session.query(UsersDB).filter_by(phone=phone_number).first()
     if query is None:
         return None
     return query.id
@@ -58,27 +52,21 @@ def get_user_by_phone_number(phone_number):
 
 def change_status(user_id, status):
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        user_id=user_id
-    ).first()
+    query = session.query(UsersDB).filter_by(user_id=user_id).first()
     query.auth = status
     session.commit()
 
 
 def add_user_id(inn, number, user_id):
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        inn=inn, phone=number
-    ).first()
+    query = session.query(UsersDB).filter_by(inn=inn, phone=number).first()
     query.user_id = user_id
     session.commit()
 
 
 def add_statement(user_id, statement_id):
     session = sessionmaker(engine)()
-    query = session.query(UsersDB).filter_by(
-        user_id=user_id
-    ).first()
+    query = session.query(UsersDB).filter_by(user_id=user_id).first()
     if query.statements is None:
         query.statements = ""
     query.statements += " " + statement_id

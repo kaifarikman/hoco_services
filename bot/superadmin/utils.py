@@ -11,7 +11,7 @@ def sort_statements(statements):
 
 
 def convert_date(date):
-    return date.strftime('%d.%m.%Y, %H:%M')
+    return date.strftime("%d.%m.%Y, %H:%M")
 
 
 def get_newsletters(users):

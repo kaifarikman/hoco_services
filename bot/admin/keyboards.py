@@ -4,9 +4,7 @@ import bot.db.crud.offices as crud_offices
 import bot.db.crud.superusers as crud_superusers
 
 user_menu_buttons = [
-    [
-        InlineKeyboardButton(text="Выйти в пользовательское меню", callback_data="start")
-    ]
+    [InlineKeyboardButton(text="Выйти в пользовательское меню", callback_data="start")]
 ]
 
 user_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=user_menu_buttons)
@@ -16,11 +14,7 @@ def go_to_admin_menu_keyboard(user_id):
     menu = "admin"
     if crud_superusers.get_superuser_role(user_id) == 1:
         menu = "superadmin"
-    buttons = [
-        [
-            InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)
-        ]
-    ]
+    buttons = [[InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)]]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -58,7 +52,7 @@ def admin_menu_keyboard(statements: list[Statements], page):
             button = [InlineKeyboardButton(text=text, callback_data=callback_data)]
             buttons.append(button)
         except Exception as e:
-            '''рализация indexError , для static_count кнопок без мучений и ифов'''
+            """рализация indexError , для static_count кнопок без мучений и ифов"""
             pass
         ind += 1
 
@@ -68,14 +62,22 @@ def admin_menu_keyboard(statements: list[Statements], page):
 
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1
-    left_button = InlineKeyboardButton(text="⬅️", callback_data=f"change_data_{left_page}")
-    middle_button = InlineKeyboardButton(text=f"{page} из {pages_count}", callback_data="dummy")
-    right_button = InlineKeyboardButton(text="➡️", callback_data=f"change_data_{right_page}")
+    left_button = InlineKeyboardButton(
+        text="⬅️", callback_data=f"change_data_{left_page}"
+    )
+    middle_button = InlineKeyboardButton(
+        text=f"{page} из {pages_count}", callback_data="dummy"
+    )
+    right_button = InlineKeyboardButton(
+        text="➡️", callback_data=f"change_data_{right_page}"
+    )
 
     configuration_field = [left_button, middle_button, right_button]
     buttons.append(configuration_field)
 
-    newsletter = InlineKeyboardButton(text="Рассылка", callback_data="send_newsletter_to_user")
+    newsletter = InlineKeyboardButton(
+        text="Рассылка", callback_data="send_newsletter_to_user"
+    )
     archive = InlineKeyboardButton(text="Архив", url="https://t.me/+EwHO3avMGPZkNTNi")
     low_menu = [newsletter, archive]
     buttons.append(low_menu)
@@ -88,26 +90,39 @@ def statement_keyboard(statement_id, superuser_type):
         buttons = [
             [
                 InlineKeyboardButton(text="Главное меню", callback_data="superadmin"),
-                InlineKeyboardButton(text="Тема", callback_data=f"select_statement_theme_{statement_id}"),
+                InlineKeyboardButton(
+                    text="Тема", callback_data=f"select_statement_theme_{statement_id}"
+                ),
             ],
             [
-                InlineKeyboardButton(text="Завершить", callback_data=f"complete_superadmin_{statement_id}"),
-                InlineKeyboardButton(text="В работу", callback_data=f"hire_statement_{statement_id}"),
-            ]
+                InlineKeyboardButton(
+                    text="Завершить",
+                    callback_data=f"complete_superadmin_{statement_id}",
+                ),
+                InlineKeyboardButton(
+                    text="В работу", callback_data=f"hire_statement_{statement_id}"
+                ),
+            ],
         ]
     else:
         buttons = [
             [
                 InlineKeyboardButton(text="Главное меню", callback_data="admin"),
-                InlineKeyboardButton(text="Тема", callback_data=f"select_statement_theme_{statement_id}"),
+                InlineKeyboardButton(
+                    text="Тема", callback_data=f"select_statement_theme_{statement_id}"
+                ),
             ],
             [
-                InlineKeyboardButton(text="В работу", callback_data=f"hire_statement_{statement_id}"),
-            ]
+                InlineKeyboardButton(
+                    text="В работу", callback_data=f"hire_statement_{statement_id}"
+                ),
+            ],
         ]
     buttons.append(
         [
-            InlineKeyboardButton(text="Ответить", callback_data=f"answer_statement_{statement_id}"),
+            InlineKeyboardButton(
+                text="Ответить", callback_data=f"answer_statement_{statement_id}"
+            ),
         ]
     )
 
@@ -124,10 +139,12 @@ def newsletter_choice(newsletters, page, user_id):
             office = crud_offices.read_office(office_id)
             text = f"{office.address}, №{office.office_number}"
             callback_data = f"send_newsletter_{office.id}_{user_user_id}"
-            buttons.append([InlineKeyboardButton(text=text, callback_data=callback_data)])
+            buttons.append(
+                [InlineKeyboardButton(text=text, callback_data=callback_data)]
+            )
 
         except Exception as e:
-            '''рализация indexError , для static_count кнопок без мучений и ифов'''
+            """рализация indexError , для static_count кнопок без мучений и ифов"""
             ...
         ind += 1
     pages_count = len(newsletters) // static_count
@@ -135,9 +152,15 @@ def newsletter_choice(newsletters, page, user_id):
         pages_count += 1
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1
-    left_button = InlineKeyboardButton(text="⬅️", callback_data=f"change_newsletter_data_{left_page}")
-    middle_button = InlineKeyboardButton(text=f"{page} из {pages_count}", callback_data="dummy")
-    right_button = InlineKeyboardButton(text="➡️", callback_data=f"change_newsletter_data_{right_page}")
+    left_button = InlineKeyboardButton(
+        text="⬅️", callback_data=f"change_newsletter_data_{left_page}"
+    )
+    middle_button = InlineKeyboardButton(
+        text=f"{page} из {pages_count}", callback_data="dummy"
+    )
+    right_button = InlineKeyboardButton(
+        text="➡️", callback_data=f"change_newsletter_data_{right_page}"
+    )
     configuration_field = [left_button, middle_button, right_button]
     buttons.append(configuration_field)
     menu = "admin"
@@ -154,18 +177,18 @@ def go_to_statement_menu(user_id, statement_id):
         menu = "superadmin"
     buttons = [
         [
-            InlineKeyboardButton(text="Перейти к заявке", callback_data=f"admin_statement_{statement_id}")
+            InlineKeyboardButton(
+                text="Перейти к заявке", callback_data=f"admin_statement_{statement_id}"
+            )
         ],
-        [
-            InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)
-        ]
+        [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 user_go_to_statements_buttons = [
-    [
-        InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")
-    ]
+    [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")]
 ]
-user_go_to_statements_keyboard = InlineKeyboardMarkup(inline_keyboard=user_go_to_statements_buttons)
+user_go_to_statements_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=user_go_to_statements_buttons
+)

@@ -20,16 +20,10 @@ def create_start_db():
     if crud_task_types.get_task_type_by_id(1) is not None:
         return ":(("
 
-    meters = {
-        1: ["Электричество", "кВт"],
-        2: ["Вода", "м3"]
-    }
+    meters = {1: ["Электричество", "кВт"], 2: ["Вода", "м3"]}
 
     for k in meters.values():
-        meter = Meters(
-            meter_type=k[0],
-            unit=k[1]
-        )
+        meter = Meters(meter_type=k[0], unit=k[1])
 
         crud_meters.create_meter(meter)
 
@@ -43,41 +37,35 @@ def create_start_db():
     }
 
     for task_type in task_types_dict.values():
-        task_type_model = TaskTypes(
-            task_type=task_type
-        )
+        task_type_model = TaskTypes(task_type=task_type)
         crud_task_types.create_task_type(task_type_model)
 
     office1 = Offices(
         address="ул. Раскольникова, 29",
         office_number="Риелторы (310)",
         coder_number=None,
-        meters="1 2"
+        meters="1 2",
     )
 
     office2 = Offices(
         address="просп. Сююмбике, 40",
         office_number="Турагентство (106)",
         coder_number=None,
-        meters="1"
+        meters="1",
     )
 
     office3 = Offices(
         address="Пролетарский пр., 10Б",
         office_number="Логопед (409)",
         coder_number=None,
-        meters="2"
+        meters="2",
     )
 
     crud_offices.create_office(office1)
     crud_offices.create_office(office2)
     crud_offices.create_office(office3)
 
-    superuser = SuperUsers(
-        user_id=6980676960,
-        name="Luka Math",
-        superuser_type=1
-    )
+    superuser = SuperUsers(user_id=6980676960, name="Luka Math", superuser_type=1)
     crud_superusers.create_superuser(superuser)
 
     # superuser = SuperUsers(

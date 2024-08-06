@@ -19,17 +19,13 @@ def create_message(message: Messages):
 
 def read_message(message_id: int):
     session = sessionmaker(engine)()
-    query = session.query(MessagesDB).filter_by(
-        id=message_id
-    ).first()
+    query = session.query(MessagesDB).filter_by(id=message_id).first()
     return query
 
 
 def update_message(message_id: int, new_multimedia: str):
     session = sessionmaker(engine)()
-    query = session.query(MessagesDB).filter_by(
-        id=message_id
-    ).first()
+    query = session.query(MessagesDB).filter_by(id=message_id).first()
     query.multimedia = new_multimedia
     session.commit()
 

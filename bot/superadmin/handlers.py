@@ -42,7 +42,9 @@ async def send_to_archive(statement_id):
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
+        address = (
+            f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
+        )
 
     user = crud_users.read_user(statement.user_id)
     answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\n"
@@ -126,10 +128,7 @@ async def send_to_archive(statement_id):
             chat_id=user_id,
             text=answer,
         )
-        await bot.send_media_group(
-            chat_id=user_id,
-            media=media_group
-        )
+        await bot.send_media_group(chat_id=user_id, media=media_group)
 
 
 router = Router()
@@ -142,8 +141,7 @@ async def superadmin_command(message: Message, state: FSMContext):
     user_id = int(message.from_user.id)
     if crud_superusers.get_superuser_role(user_id) != 1:
         return await message.answer(
-            text=texts.no_access,
-            reply_markup=keyboards.user_menu_keyboard
+            text=texts.no_access, reply_markup=keyboards.user_menu_keyboard
         )
 
     statements = crud_statements.get_statements()
@@ -152,7 +150,7 @@ async def superadmin_command(message: Message, state: FSMContext):
 
     await message.answer(
         text=texts.hello_superadmin,
-        reply_markup=keyboards.superadmin_keyboard(sort_statements, page)
+        reply_markup=keyboards.superadmin_keyboard(sort_statements, page),
     )
 
 
@@ -165,8 +163,7 @@ async def superadmin_callback_command(callback: CallbackQuery, state: FSMContext
     user_id = int(callback.from_user.id)
     if crud_superusers.get_superuser_role(user_id) != 1:
         return await callback.message.answer(
-            text=texts.no_access,
-            reply_markup=keyboards.user_menu_keyboard
+            text=texts.no_access, reply_markup=keyboards.user_menu_keyboard
         )
     statements = crud_statements.get_statements()
     sort_statements = utils.sort_statements(statements)
@@ -175,7 +172,7 @@ async def superadmin_callback_command(callback: CallbackQuery, state: FSMContext
 
     await callback.message.answer(
         text=texts.hello_superadmin,
-        reply_markup=keyboards.superadmin_keyboard(sort_statements, page)
+        reply_markup=keyboards.superadmin_keyboard(sort_statements, page),
     )
 
 
@@ -203,7 +200,7 @@ async def complete_statement(callback: CallbackQuery, state: FSMContext):
     statement_id = int(callback.data.split("_")[-1])
     await callback.message.answer(
         text=texts.seriously_complete,
-        reply_markup=keyboards.seriously_delete_keyboard(statement_id)
+        reply_markup=keyboards.seriously_delete_keyboard(statement_id),
     )
 
 
@@ -213,8 +210,7 @@ async def superadmin_no_complete(callback: CallbackQuery):
     await callback.message.edit_reply_markup()
 
     await callback.message.answer(
-        text=texts.no_complete,
-        reply_markup=keyboards.superadmin_menu_keyboard
+        text=texts.no_complete, reply_markup=keyboards.superadmin_menu_keyboard
     )
 
 
@@ -228,8 +224,7 @@ async def superadmin_complete_callback(callback: CallbackQuery):
     crud_statements.set_date_finish(statement_id, datetime.now())
     await send_to_archive(statement_id)
     await callback.message.answer(
-        text=texts.sent_to_achieve,
-        reply_markup=keyboards.superadmin_menu_keyboard
+        text=texts.sent_to_achieve, reply_markup=keyboards.superadmin_menu_keyboard
     )
 
 
@@ -246,7 +241,7 @@ async def superadmin_newsletter_callback(callback: CallbackQuery, state: FSMCont
 
     await callback.message.answer(
         text=texts.choice_newsletter_text,
-        reply_markup=keyboards.newsletter_choice(newsletters, page)
+        reply_markup=keyboards.newsletter_choice(newsletters, page),
     )
 
 
@@ -256,8 +251,7 @@ async def superadmin_give_role_callback(callback: CallbackQuery, state: FSMConte
     await state.clear()
 
     await callback.message.answer(
-        text=texts.give_role,
-        reply_markup=keyboards.give_role
+        text=texts.give_role, reply_markup=keyboards.give_role
     )
 
 
@@ -272,7 +266,7 @@ async def give_role_for_superusers_callback(callback: CallbackQuery):
     superusers = crud_superusers.get_superusers()
     await callback.message.answer(
         text=texts.select_an_employee_for_settings,
-        reply_markup=keyboards.select_an_employee_for_settings(superusers)
+        reply_markup=keyboards.select_an_employee_for_settings(superusers),
     )
 
 
@@ -283,15 +277,10 @@ async def select_id_for_select(callback: CallbackQuery):
 
     superuser_id = int(callback.data.split("_")[-1])
     superuser = crud_superusers.read_superuser(superuser_id)
-    d = {
-        1: "Группа: суперадмин",
-        2: "Группа: админ",
-        3: "Группа: бухгалтер"
-    }
+    d = {1: "Группа: суперадмин", 2: "Группа: админ", 3: "Группа: бухгалтер"}
     text = f"Пользователь:\n{superuser.name}\n{d[superuser.superuser_type]}"
     await callback.message.answer(
-        text=text,
-        reply_markup=keyboards.select(superuser_id)
+        text=text, reply_markup=keyboards.select(superuser_id)
     )
 
 
@@ -309,7 +298,7 @@ async def change_to_admin(callback: CallbackQuery, state: FSMContext):
     name = crud_superusers.read_superuser(int(superuser_id)).name
     await callback.message.answer(
         text=texts.seriously_give_role(superuser_type, name),
-        reply_markup=keyboards.go_to_pls
+        reply_markup=keyboards.go_to_pls,
     )
     await state.set_state(ChangeState.info)
     await state.update_data({"info": [superuser_type, superuser_id]})
@@ -322,8 +311,7 @@ async def no_to_pls(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
     await callback.message.answer(
-        text="Успешно отменено",
-        reply_markup=keyboards.superadmin_menu_keyboard
+        text="Успешно отменено", reply_markup=keyboards.superadmin_menu_keyboard
     )
 
 
@@ -341,7 +329,7 @@ async def yes_go_to_pls(callback: CallbackQuery, state: FSMContext):
     crud_superusers.update_superuser(int(superuser_id), d[superuser_type])
     await callback.message.answer(
         text="Статус суперпользователя успешно сменен",
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
 
 
@@ -356,7 +344,7 @@ async def delete_person_(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.answer(
         text=texts.really_delete_person(superuser),
-        reply_markup=keyboards.really_delete_person(superuser_id)
+        reply_markup=keyboards.really_delete_person(superuser_id),
     )
 
 
@@ -365,18 +353,17 @@ async def delete_really_person(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_reply_markup()
 
-    action, superuser_id = callback.data.split('_')[-2:]
+    action, superuser_id = callback.data.split("_")[-2:]
 
     if action == "no":
         return await callback.message.answer(
-            text="Успешно отменено",
-            reply_markup=keyboards.superadmin_menu_keyboard
+            text="Успешно отменено", reply_markup=keyboards.superadmin_menu_keyboard
         )
     superuser = crud_superusers.read_superuser(superuser_id)
     crud_superusers.delete_superuser(superuser_id)
     await callback.message.answer(
         text=f"{superuser.name} успешно удален из Базы Данных",
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
 
 
@@ -393,8 +380,7 @@ async def add_new_superuser_callback(callback: CallbackQuery, state: FSMContext)
     await state.clear()
 
     await callback.message.answer(
-        text=texts.sent_new_superuser,
-        reply_markup=keyboards.sent_user_id_bot
+        text=texts.sent_new_superuser, reply_markup=keyboards.sent_user_id_bot
     )
     await state.set_state(SuperAdminAddNewSuperUser.user_id)
 
@@ -406,13 +392,11 @@ async def add_new_superuser_user_id(message: Message, state: FSMContext):
     except Exception:
         return await message.answer(
             text=texts.sent_new_superuser_user_id_please,
-            reply_markup=keyboards.superadmin_menu_keyboard
+            reply_markup=keyboards.superadmin_menu_keyboard,
         )
     await state.update_data({"user_id": user_id})
 
-    await message.answer(
-        text=texts.sent_name
-    )
+    await message.answer(text=texts.sent_name)
 
     await state.set_state(SuperAdminAddNewSuperUser.name)
 
@@ -422,15 +406,14 @@ async def add_new_superuser_name(message: Message, state: FSMContext):
     name = message.text
     await state.update_data({"name": name})
 
-    await message.answer(
-        text=texts.sent_superuser_role,
-        reply_markup=keyboards.roles
-    )
+    await message.answer(text=texts.sent_superuser_role, reply_markup=keyboards.roles)
 
     await state.set_state(SuperAdminAddNewSuperUser.superuser_type_id)
 
 
-@router.callback_query(F.data.startswith("set_role_"), SuperAdminAddNewSuperUser.superuser_type_id)
+@router.callback_query(
+    F.data.startswith("set_role_"), SuperAdminAddNewSuperUser.superuser_type_id
+)
 async def set_role_callback(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
@@ -442,15 +425,11 @@ async def set_role_callback(callback: CallbackQuery, state: FSMContext):
     name = data["name"]
     superuser_type_id = int(callback.data.split("_")[-1])
 
-    superuser = SuperUsers(
-        user_id=user_id,
-        name=name,
-        superuser_type=superuser_type_id
-    )
+    superuser = SuperUsers(user_id=user_id, name=name, superuser_type=superuser_type_id)
     crud_superusers.create_superuser(superuser)
     await callback.message.answer(
         text="Сотрудник добавился и получил новые права",
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
 
 
@@ -460,8 +439,7 @@ async def give_role_for_users_callback(callback: CallbackQuery):
     await callback.message.edit_reply_markup()
 
     await callback.message.answer(
-        text="Выберите действие",
-        reply_markup=keyboards.users_change
+        text="Выберите действие", reply_markup=keyboards.users_change
     )
 
 
@@ -475,9 +453,7 @@ async def delete_user_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     await state.clear()
 
-    await callback.message.answer(
-        text="Отправьте номер пользователя в формате: 79..."
-    )
+    await callback.message.answer(text="Отправьте номер пользователя в формате: 79...")
     await state.set_state(SuperUserDelete.phone_number)
 
 
@@ -490,12 +466,12 @@ async def delete_user_by_phone_number(message: Message, state: FSMContext):
     if id_ is None:
         return await message.answer(
             text="Пользователя с таким номером в Базе Данных не существует",
-            reply_markup=keyboards.superadmin_menu_keyboard
+            reply_markup=keyboards.superadmin_menu_keyboard,
         )
     crud_users.delete_user(id_)
     await message.answer(
         text="Пользователь удален из Базы Данных",
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
 
 
@@ -514,7 +490,7 @@ async def add_new_user_(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.answer(
         text=texts.add_new_user_name_text,
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
     await state.set_state(AddNewUser.name)
 
@@ -525,7 +501,7 @@ async def add_new_user_name(message: Message, state: FSMContext):
     await state.update_data({"name": name})
     await message.answer(
         text=texts.add_new_user_inn_text,
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
     await state.set_state(AddNewUser.inn)
 
@@ -536,7 +512,7 @@ async def add_new_user_inn(message: Message, state: FSMContext):
     await state.update_data({"inn": inn})
     await message.answer(
         text=texts.add_new_user_phone_number_text,
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
     await state.set_state(AddNewUser.phone_number)
 
@@ -544,11 +520,11 @@ async def add_new_user_inn(message: Message, state: FSMContext):
 @router.message(AddNewUser.phone_number)
 async def add_new_user_phone_number(message: Message, state: FSMContext):
     phone_number = str(message.text)
-    phone_number = phone_number.replace('+', "")
+    phone_number = phone_number.replace("+", "")
     await state.update_data({"phone_number": phone_number})
     await message.answer(
         text=texts.add_new_user_due_date_text,
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
     await state.set_state(AddNewUser.due_date)
 
@@ -563,8 +539,7 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
         due_date = int(message.text)
     except Exception:
         return await message.answer(
-            text="Введите число.",
-            reply_markup=keyboards.superadmin_menu_keyboard
+            text="Введите число.", reply_markup=keyboards.superadmin_menu_keyboard
         )
 
     await state.clear()
@@ -581,10 +556,13 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
         statements=None,
         offices=None,
     )
+
+    # TODO: create office
+
     crud_users.create_user(user)
     await message.answer(
         text="Пользователь добавлен в Базу Данных",
-        reply_markup=keyboards.superadmin_menu_keyboard
+        reply_markup=keyboards.superadmin_menu_keyboard,
     )
 
 

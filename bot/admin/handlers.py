@@ -78,7 +78,9 @@ async def send_pretty_statement(user_id, statement_id):
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
+        address = (
+            f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
+        )
 
     user = crud_users.read_user(statement.user_id)
     answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\n"
@@ -115,11 +117,7 @@ async def send_pretty_statement(user_id, statement_id):
 
     keyboard = keyboards.statement_keyboard(statement_id, superuser_type)
     if len(multi) == 0:
-        await bot.send_message(
-            chat_id=user_id,
-            text=answer,
-            reply_markup=keyboard
-        )
+        await bot.send_message(chat_id=user_id, text=answer, reply_markup=keyboard)
     elif len(multi) == 1:
         multimedia_type, file_id = multi[0]
         if multimedia_type == "photo":
@@ -127,30 +125,20 @@ async def send_pretty_statement(user_id, statement_id):
                 chat_id=user_id,
                 text=answer,
             )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=file_id,
-                reply_markup=keyboard
-            )
+            await bot.send_photo(chat_id=user_id, photo=file_id, reply_markup=keyboard)
         elif multimedia_type == "video":
             await bot.send_message(
                 chat_id=user_id,
                 text=answer,
             )
-            await bot.send_video(
-                chat_id=user_id,
-                video=file_id,
-                reply_markup=keyboard
-            )
+            await bot.send_video(chat_id=user_id, video=file_id, reply_markup=keyboard)
         else:
             await bot.send_message(
                 chat_id=user_id,
                 text=answer,
             )
             await bot.send_document(
-                chat_id=user_id,
-                document=file_id,
-                reply_markup=keyboard
+                chat_id=user_id, document=file_id, reply_markup=keyboard
             )
     else:
         media_group = []
@@ -163,15 +151,8 @@ async def send_pretty_statement(user_id, statement_id):
             else:
                 element_add = InputMediaDocument(media=file_id, caption=None)
             media_group.append(element_add)
-        await bot.send_media_group(
-            chat_id=user_id,
-            media=media_group
-        )
-        await bot.send_message(
-            chat_id=user_id,
-            text=answer,
-            reply_markup=keyboard
-        )
+        await bot.send_media_group(chat_id=user_id, media=media_group)
+        await bot.send_message(chat_id=user_id, text=answer, reply_markup=keyboard)
 
 
 router = Router()
@@ -187,8 +168,7 @@ async def start_command(message: Message, state: FSMContext):
 
     if access is None or not access:
         return await message.answer(
-            text=texts.no_access,
-            reply_markup=keyboards.user_menu_keyboard
+            text=texts.no_access, reply_markup=keyboards.user_menu_keyboard
         )
 
     statements = crud_statements.get_statements()
@@ -197,7 +177,7 @@ async def start_command(message: Message, state: FSMContext):
     page = 1 if len(sort_statements) != 0 else 0
     await message.answer(
         text=texts.access_admin,
-        reply_markup=keyboards.admin_menu_keyboard(sort_statements, page)
+        reply_markup=keyboards.admin_menu_keyboard(sort_statements, page),
     )
 
 
@@ -212,8 +192,7 @@ async def start_call_command(callback: CallbackQuery, state: FSMContext):
     access = crud_superusers.get_superuser(user_id, access_roles)
     if access is None or not access:
         return await callback.message.answer(
-            text=texts.no_access,
-            reply_markup=keyboards.user_menu_keyboard
+            text=texts.no_access, reply_markup=keyboards.user_menu_keyboard
         )
     statements = crud_statements.get_statements()
     sort_statements = utils.sort_statements(statements)
@@ -221,7 +200,7 @@ async def start_call_command(callback: CallbackQuery, state: FSMContext):
     page = 1 if len(sort_statements) != 0 else 0
     await callback.message.answer(
         text=texts.access_admin,
-        reply_markup=keyboards.admin_menu_keyboard(sort_statements, page)
+        reply_markup=keyboards.admin_menu_keyboard(sort_statements, page),
     )
 
 
@@ -245,7 +224,7 @@ async def dummy_callback(callback: CallbackQuery):
     await callback.answer()
 
 
-'''check every statement by id'''
+"""check every statement by id"""
 
 
 @router.callback_query(F.data.startswith("admin_statement_"))
@@ -275,9 +254,7 @@ async def select_statement_theme(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
 
     statement_id = int(callback.data.split("_")[-1])
-    await callback.message.answer(
-        text=texts.set_theme
-    )
+    await callback.message.answer(text=texts.set_theme)
     await state.set_state(StatementTheme.theme)
     await state.update_data({"statement_id": statement_id})
 
@@ -290,7 +267,7 @@ async def statement_theme(message: Message, state: FSMContext):
     crud_statements.update_theme(statement_id, theme)
     await message.answer(
         text=texts.theme_changed,
-        reply_markup=keyboards.go_to_statement_menu(user_id, statement_id)
+        reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
     )
     await state.clear()
 
@@ -316,7 +293,7 @@ async def start_statement_(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.answer(
         text=texts.status_changed,
-        reply_markup=keyboards.go_to_statement_menu(user_id, statement_id)
+        reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
     )
 
 
@@ -347,7 +324,9 @@ async def answer_statement_callback(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(AnswerStatement.sent_answer)
-async def answer_to_user(message: Message, state: FSMContext, album: List[Message] = None):
+async def answer_to_user(
+    message: Message, state: FSMContext, album: List[Message] = None
+):
     statement_id = int((await state.get_data())["statement_id"])
     user_id = int(message.from_user.id)
     await state.clear()
@@ -356,7 +335,7 @@ async def answer_to_user(message: Message, state: FSMContext, album: List[Messag
     if lst == "no format":
         return await message.answer(
             text=texts.no_format_to_create_statement,
-            reply_markup=keyboards.go_to_statement_menu(user_id, statement_id)
+            reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
         )
     if lst == "to_long":
         return await message.answer(
@@ -386,12 +365,12 @@ async def answer_to_user(message: Message, state: FSMContext, album: List[Messag
     await bot.send_message(
         chat_id=user_id,
         text=f"Админ отправил вам ответ по заявке",
-        reply_markup=keyboards.user_go_to_statements_keyboard
+        reply_markup=keyboards.user_go_to_statements_keyboard,
     )
     admin_id = int(message.from_user.id)
     await message.answer(
         text=texts.successfully_sent,
-        reply_markup=keyboards.go_to_admin_menu_keyboard(admin_id)
+        reply_markup=keyboards.go_to_admin_menu_keyboard(admin_id),
     )
 
 
@@ -411,7 +390,7 @@ async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.answer(
         text=texts.choice_newsletter_text,
-        reply_markup=keyboards.newsletter_choice(newsletters, page, user_id)
+        reply_markup=keyboards.newsletter_choice(newsletters, page, user_id),
     )
 
 
@@ -444,7 +423,7 @@ async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
     address = crud_offices.get_office_address_by_id(office_id)
     await callback.message.answer(
         text=texts.input_newsletter_text(address),
-        reply_markup=keyboards.go_to_admin_menu_keyboard(user_id)
+        reply_markup=keyboards.go_to_admin_menu_keyboard(user_id),
     )
     await state.set_state(Newsletter.newsletter_text)
     await state.update_data({"newsletter_id": [office_id, user_id]})
@@ -463,6 +442,6 @@ async def newsletter_text_cmd(message: Message, state: FSMContext):
     )
     await message.answer(
         text=texts.newsletter_sent,
-        reply_markup=keyboards.go_to_admin_menu_keyboard(user_id)
+        reply_markup=keyboards.go_to_admin_menu_keyboard(user_id),
     )
     await state.clear()
