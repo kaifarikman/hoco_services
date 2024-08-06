@@ -185,7 +185,6 @@ async def change_data_(callback: CallbackQuery, state: FSMContext):
     page = int(data[-1])
     statements = crud_statements.get_statements()
     sort_statements = utils.sort_statements(statements)
-    # TODO: 196 line - is error! big error!
     await callback.message.edit_reply_markup(
         reply_markup=keyboards.superadmin_keyboard(sort_statements, page)
     )
@@ -480,6 +479,9 @@ class AddNewUser(StatesGroup):
     inn = State()
     phone_number = State()
     due_date = State()
+    address = State()
+    office_number = State()
+    meters = State()
 
 
 @router.callback_query(F.data == "add_new_user")
@@ -530,19 +532,63 @@ async def add_new_user_phone_number(message: Message, state: FSMContext):
 
 
 @router.message(AddNewUser.due_date)
-async def add_new_user_due_date(message: Message, state: FSMContext):
-    data = await state.get_data()
-    name = data["name"]
-    inn = data["inn"]
-    phone_number = data["phone_number"]
+async def add_new_user_due_date_number(message: Message, state: FSMContext):
     try:
         due_date = int(message.text)
-    except Exception:
+    except Exception as e:
+
         return await message.answer(
             text="Введите число.", reply_markup=keyboards.superadmin_menu_keyboard
         )
+    await state.update_data({"due_date": due_date})
+    await message.answer(
+        text=texts.add_new_user_office_address_text,
+        reply_markup=keyboards.superadmin_menu_keyboard,
+    )
+    await state.set_state(AddNewUser.address)
 
+
+@router.message(AddNewUser.address)
+async def add_new_user_address_number(message: Message, state: FSMContext):
+    address = message.text
+    await state.update_data({"address": address})
+    await message.answer(
+        text=texts.add_new_user_office_office_number_text,
+        reply_markup=keyboards.superadmin_menu_keyboard,
+    )
+    await state.set_state(AddNewUser.office_number)
+
+
+@router.message(AddNewUser.office_number)
+async def add_new_user_office_number_number(message: Message, state: FSMContext):
+    office_number = message.text
+    await state.update_data({"office_number": office_number})
+    await message.answer(
+        text=texts.add_new_user_office_meters_text,
+        reply_markup=keyboards.superadmin_menu_keyboard,
+    )
+    await state.set_state(AddNewUser.meters)
+
+
+@router.message(AddNewUser.meters)
+async def add_new_user_due_date(message: Message, state: FSMContext):
+    data = await state.get_data()
     await state.clear()
+    name = data["name"]
+    inn = data["inn"]
+    phone_number = data["phone_number"]
+    due_date = int(data["due_date"])
+    address = data["address"]
+    office_number = data["office_number"]
+    meters = message.text
+
+    office_db = Offices(
+        address=address,
+        office_number=office_number,
+        coder_number=None,
+        meters=meters
+    )
+    office_id = crud_offices.create_office(office_db)
     user = Users(
         user_id=None,
         name=name,
@@ -554,10 +600,8 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
         auth=False,
         was_deleted=False,
         statements=None,
-        offices=None,
+        offices=office_id,
     )
-
-    # TODO: create office
 
     crud_users.create_user(user)
     await message.answer(

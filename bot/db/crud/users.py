@@ -21,11 +21,13 @@ def create_user(user: Users):
     )
     session.add(user_db)
     session.commit()
+    session.close()
 
 
 def read_user(user_id):
     session = sessionmaker(engine)()
     query = session.query(UsersDB).filter_by(user_id=user_id).first()
+    session.close()
     return query
 
 
@@ -39,12 +41,14 @@ def get_user_auth_by_id(user_id: int):
 def get_user_by_inn_and_phone(inn, number):
     session = sessionmaker(engine)()
     query = session.query(UsersDB).filter_by(inn=inn, phone=number).first()
+    session.close()
     return bool(query)
 
 
 def get_user_by_phone_number(phone_number):
     session = sessionmaker(engine)()
     query = session.query(UsersDB).filter_by(phone=phone_number).first()
+    session.close()
     if query is None:
         return None
     return query.id
@@ -55,6 +59,7 @@ def change_status(user_id, status):
     query = session.query(UsersDB).filter_by(user_id=user_id).first()
     query.auth = status
     session.commit()
+    session.close()
 
 
 def add_user_id(inn, number, user_id):
@@ -62,6 +67,7 @@ def add_user_id(inn, number, user_id):
     query = session.query(UsersDB).filter_by(inn=inn, phone=number).first()
     query.user_id = user_id
     session.commit()
+    session.close()
 
 
 def add_statement(user_id, statement_id):
@@ -71,6 +77,7 @@ def add_statement(user_id, statement_id):
         query.statements = ""
     query.statements += " " + statement_id
     session.commit()
+    session.close()
 
 
 def get_user_statements(user_id):
@@ -86,6 +93,7 @@ def get_user_offices(user_id):
 def get_all_users():
     session = sessionmaker(engine)()
     query = session.query(UsersDB).all()
+    session.close()
     return query
 
 
@@ -94,3 +102,4 @@ def delete_user(id_):
     query = session.query(UsersDB).filter_by(id=id_).first()
     query.was_deleted = True
     session.commit()
+    session.close()

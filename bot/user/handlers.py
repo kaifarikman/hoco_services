@@ -169,7 +169,6 @@ async def send_pretty_statement(user_id, statement_id):
             else:
                 element_add = InputMediaDocument(media=file_id, caption=None)
             media_group.append(element_add)
-        # TODO: rofllll
         await bot.send_media_group(chat_id=user_id, media=media_group)
         await bot.send_message(chat_id=user_id, text=answer, reply_markup=keyboard)
 

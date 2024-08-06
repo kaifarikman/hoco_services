@@ -16,7 +16,7 @@ import bot.db.crud.messages as crud_messages
 
 
 def create_start_db():
-    # TODO: creating default database
+    # creating default database
     if crud_task_types.get_task_type_by_id(1) is not None:
         return ":(("
 

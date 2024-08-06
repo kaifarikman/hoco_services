@@ -14,11 +14,14 @@ def create_office(office_db: Offices):
     )
     session.add(office)
     session.commit()
+    session.close()
+    return office.id
 
 
 def read_office(office_id: int):
     session = sessionmaker(engine)()
     query = session.query(OfficesDB).filter_by(id=office_id).first()
+    session.close()
     return query
 
 
@@ -26,6 +29,7 @@ def update_office(office_id: int, *args):
     session = sessionmaker(engine)()
     query = session.query(OfficesDB).filter_by(id=office_id).first()
     # args - update_parametr
+    session.close()
 
 
 def delete_office(office_id: int):
@@ -33,6 +37,7 @@ def delete_office(office_id: int):
     query = session.query(OfficesDB).filter_by(id=office_id)
     query.delete()
     session.commit()
+    session.close()
 
 
 def get_meters(office_id):

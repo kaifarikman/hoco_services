@@ -20,18 +20,21 @@ def create_statement(statement: Statements):
     )
     session.add(statement_db)
     session.commit()
+    session.close()
     return str(statement_db.id)
 
 
 def get_statements():
     session = sessionmaker(engine)()
     query = session.query(StatementsDB).all()
+    session.close()
     return query
 
 
 def get_statement_by_id(statement_id):
     session = sessionmaker(engine)()
     query = session.query(StatementsDB).filter_by(id=statement_id).first()
+    session.close()
     return query
 
 
@@ -40,6 +43,7 @@ def update_theme(statement_id, theme):
     query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.theme = theme
     session.commit()
+    session.close()
 
 
 def update_messages(statement_id, message_id):
@@ -50,6 +54,7 @@ def update_messages(statement_id, message_id):
     else:
         query.messages += " " + str(message_id)
     session.commit()
+    session.close()
 
 
 def change_status(statement_id, status):
@@ -57,6 +62,7 @@ def change_status(statement_id, status):
     query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.status = status
     session.commit()
+    session.close()
 
 
 def set_date_run(statement_id, date):
@@ -64,6 +70,7 @@ def set_date_run(statement_id, date):
     query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.date_run = date
     session.commit()
+    session.close()
 
 
 def set_date_finish(statement_id, date):
@@ -71,3 +78,4 @@ def set_date_finish(statement_id, date):
     query = session.query(StatementsDB).filter_by(id=statement_id).first()
     query.date_finish = date
     session.commit()
+    session.close()
