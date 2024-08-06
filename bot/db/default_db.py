@@ -108,7 +108,7 @@ def create_start_db():
         statements=None,
         offices="1 2",
     )
-    # crud_users.create_user(user)
+    crud_users.create_user(user)
     # user = Users(
     #     user_id=None,
     #     name="Александр",
