@@ -68,46 +68,46 @@ def create_start_db():
     superuser = SuperUsers(user_id=6980676960, name="Luka Math", superuser_type=1)
     crud_superusers.create_superuser(superuser)
 
-    # superuser = SuperUsers(
-    #     user_id=85288369,
-    #     name="Егор",
-    #     superuser_type=1
-    # )
-    # crud_superusers.create_superuser(superuser)
+    superuser = SuperUsers(
+        user_id=85288369,
+        name="Егор",
+        superuser_type=1
+    )
+    crud_superusers.create_superuser(superuser)
 
-    # superuser = SuperUsers(
-    #     user_id=128518307,
-    #     name="Альберт М",
-    #     superuser_type=1
-    # )
-    # crud_superusers.create_superuser(superuser)
-    # user = Users(
-    #     user_id=None,
-    #     name="Альберт",
-    #     phone="79093074556",
-    #     inn="123",
-    #     due_date=1,
-    #     meter_notification=True,
-    #     rent_notification=True,
-    #     auth=False,
-    #     was_deleted=False,
-    #     statements=None,
-    #     offices="1 2",
-    # )
-    # crud_users.create_user(user)
-    # user = Users(
-    #     user_id=None,
-    #     name="Амир Князев",
-    #     phone="79393167376",
-    #     inn="123",
-    #     due_date=1,
-    #     meter_notification=True,
-    #     rent_notification=True,
-    #     auth=False,
-    #     was_deleted=False,
-    #     statements=None,
-    #     offices="1 2",
-    # )
+    superuser = SuperUsers(
+        user_id=128518307,
+        name="Альберт М",
+        superuser_type=1
+    )
+    crud_superusers.create_superuser(superuser)
+    user = Users(
+        user_id=None,
+        name="Альберт",
+        phone="79093074556",
+        inn="123",
+        due_date=1,
+        meter_notification=True,
+        rent_notification=True,
+        auth=False,
+        was_deleted=False,
+        statements=None,
+        offices="1 2",
+    )
+    crud_users.create_user(user)
+    user = Users(
+        user_id=None,
+        name="Амир Князев",
+        phone="79393167376",
+        inn="123",
+        due_date=1,
+        meter_notification=True,
+        rent_notification=True,
+        auth=False,
+        was_deleted=False,
+        statements=None,
+        offices="1 2",
+    )
     # crud_users.create_user(user)
     # user = Users(
     #     user_id=None,
