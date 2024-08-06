@@ -107,3 +107,31 @@ def create_start_db():
     #     offices="1 2",
     # )
     # crud_users.create_user(user)
+    # user = Users(
+    #     user_id=None,
+    #     name="Амир Князев",
+    #     phone="79393167376",
+    #     inn="123",
+    #     due_date=1,
+    #     meter_notification=True,
+    #     rent_notification=True,
+    #     auth=False,
+    #     was_deleted=False,
+    #     statements=None,
+    #     offices="1 2",
+    # )
+    # crud_users.create_user(user)
+    # user = Users(
+    #     user_id=None,
+    #     name="Александр",
+    #     phone="79869320203",
+    #     inn="123",
+    #     due_date=1,
+    #     meter_notification=True,
+    #     rent_notification=True,
+    #     auth=False,
+    #     was_deleted=False,
+    #     statements=None,
+    #     offices="2",
+    # )
+    # crud_users.create_user(user)

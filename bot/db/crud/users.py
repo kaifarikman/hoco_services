@@ -46,6 +46,16 @@ def get_user_by_inn_and_phone(inn, number):
     return bool(query)
 
 
+def get_user_by_phone_number(phone_number):
+    session = sessionmaker(engine)()
+    query = session.query(UsersDB).filter_by(
+        phone=phone_number
+    ).first()
+    if query is None:
+        return None
+    return query.id
+
+
 def change_status(user_id, status):
     session = sessionmaker(engine)()
     query = session.query(UsersDB).filter_by(
@@ -89,3 +99,10 @@ def get_all_users():
     session = sessionmaker(engine)()
     query = session.query(UsersDB).all()
     return query
+
+
+def delete_user(id_):
+    session = sessionmaker(engine)()
+    query = session.query(UsersDB).filter_by(id=id_).first()
+    query.was_deleted = True
+    session.commit()

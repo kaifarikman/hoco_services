@@ -51,7 +51,7 @@ def admin_menu_keyboard(statements: list[Statements], page):
                 else:
                     text = f"{address}, "
                 if statement.theme is None:
-                    text += f"№{office_id}"
+                    text += f"офис №{office_id}"
                 else:
                     text += f"{statement.theme}"
             callback_data = f"admin_statement_{statement.id}"
@@ -120,10 +120,10 @@ def newsletter_choice(newsletters, page, user_id):
     ind = (page - 1) * static_count
     for _ in range(static_count):
         try:
-            office_id, user_id = map(int, newsletters[ind])
+            office_id, user_user_id = map(int, newsletters[ind])
             office = crud_offices.read_office(office_id)
             text = f"{office.address}, №{office.office_number}"
-            callback_data = f"send_newsletter_{office.id}_{user_id}"
+            callback_data = f"send_newsletter_{office.id}_{user_user_id}"
             buttons.append([InlineKeyboardButton(text=text, callback_data=callback_data)])
 
         except Exception as e:

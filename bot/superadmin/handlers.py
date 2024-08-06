@@ -50,8 +50,10 @@ async def send_to_archive(statement_id):
     for message_id in messages:
         message = crud_messages.read_message(message_id)
         user_type = "Пользователь"
-        if message.type_of_user == "admin":
+        if message.type_of_user in ["admin", "superadmin"]:
             user_type = "Админ"
+        if message.type_of_user == "accountant":
+            user_type = "Бухгалтер"
         date = utils.convert_date(message.date)
 
         text = ""
@@ -80,7 +82,7 @@ async def send_to_archive(statement_id):
             chat_id=user_id,
             text=answer,
         )
-    if len(multi) == 1:
+    elif len(multi) == 1:
         multimedia_type, file_id = multi[0]
         if multimedia_type == "photo":
             await bot.send_message(
@@ -133,11 +135,6 @@ async def send_to_archive(statement_id):
 router = Router()
 
 
-@router.message(Command("change_status"))
-async def change_chat(message: Message):
-    crud_statements.change_status(1, 2)
-
-
 @router.message(Command("superadmin"))
 async def superadmin_command(message: Message, state: FSMContext):
     await state.clear()
@@ -148,9 +145,9 @@ async def superadmin_command(message: Message, state: FSMContext):
             text=texts.no_access,
             reply_markup=keyboards.user_menu_keyboard
         )
+
     statements = crud_statements.get_statements()
     sort_statements = utils.sort_statements(statements)
-
     page = 1 if len(sort_statements) != 0 else 0
 
     await message.answer(
@@ -240,27 +237,31 @@ async def superadmin_complete_callback(callback: CallbackQuery):
 async def superadmin_newsletter_callback(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
-    statements = crud_statements.get_statements()
-    sort_statements = utils.sort_statements(statements)
-    page = 1 if len(sort_statements) != 0 else 0
+    await state.clear()
+
+    users = crud_users.get_all_users()
+    newsletters = utils.get_newsletters(users)
+
+    page = 1 if len(newsletters) != 0 else 0
 
     await callback.message.answer(
         text=texts.choice_newsletter_text,
-        reply_markup=keyboards.newsletter_choice(sort_statements, page)
+        reply_markup=keyboards.newsletter_choice(newsletters, page)
     )
 
 
 @router.callback_query(F.data == "superadmin_give_role")
 async def superadmin_give_role_callback(callback: CallbackQuery, state: FSMContext):
-    await callback.answer("В доработке")
+    await callback.message.edit_reply_markup()
+    await state.clear()
 
-    # await callback.message.edit_reply_markup()
-    # await state.clear()
-    #
-    # await callback.message.answer(
-    #     text=texts.give_role,
-    #     reply_markup=keyboards.give_role
-    # )
+    await callback.message.answer(
+        text=texts.give_role,
+        reply_markup=keyboards.give_role
+    )
+
+
+"""начало Функционала ..."""
 
 
 @router.callback_query(F.data == "give_role_for_superusers")
@@ -287,18 +288,304 @@ async def select_id_for_select(callback: CallbackQuery):
         2: "Группа: админ",
         3: "Группа: бухгалтер"
     }
-    text = f"Пользователь:\n{superuser.name}\nГруппа:\n{d[superuser.superuser_type]}"
+    text = f"Пользователь:\n{superuser.name}\n{d[superuser.superuser_type]}"
     await callback.message.answer(
         text=text,
         reply_markup=keyboards.select(superuser_id)
     )
 
 
-@router.callback_query(F.data.startswith("change_to_admin_"))
+class ChangeState(StatesGroup):
+    info = State()
+
+
+@router.callback_query(F.data.startswith("change_to_"))
 async def change_to_admin(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    ...
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    superuser_type, superuser_id = callback.data.split("_")[-2:]
+    name = crud_superusers.read_superuser(int(superuser_id)).name
+    await callback.message.answer(
+        text=texts.seriously_give_role(superuser_type, name),
+        reply_markup=keyboards.go_to_pls
+    )
+    await state.set_state(ChangeState.info)
+    await state.update_data({"info": [superuser_type, superuser_id]})
+
+
+@router.callback_query(F.data == "no_to_pls", ChangeState.info)
+async def no_to_pls(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    await callback.message.answer(
+        text="Успешно отменено",
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+
+
+@router.callback_query(F.data == "yes_go_to_pls", ChangeState.info)
+async def yes_go_to_pls(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    superuser_type, superuser_id = (await state.get_data())["info"]
+    await state.clear()
+    d = {
+        "superadmin": 1,
+        "admin": 2,
+        "accountant": 3,
+    }
+    crud_superusers.update_superuser(int(superuser_id), d[superuser_type])
+    await callback.message.answer(
+        text="Статус суперпользователя успешно сменен",
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+
+
+@router.callback_query(F.data.startswith("delete_person_"))
+async def delete_person_(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    superuser_id = int(callback.data.split("_")[-1])
+    superuser = crud_superusers.read_superuser(superuser_id)
+
+    await callback.message.answer(
+        text=texts.really_delete_person(superuser),
+        reply_markup=keyboards.really_delete_person(superuser_id)
+    )
+
+
+@router.callback_query(F.data.startswith("delete_really_"))
+async def delete_really_person(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+
+    action, superuser_id = callback.data.split('_')[-2:]
+
+    if action == "no":
+        return await callback.message.answer(
+            text="Успешно отменено",
+            reply_markup=keyboards.superadmin_menu_keyboard
+        )
+    superuser = crud_superusers.read_superuser(superuser_id)
+    crud_superusers.delete_superuser(superuser_id)
+    await callback.message.answer(
+        text=f"{superuser.name} успешно удален из Базы Данных",
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+
+
+class SuperAdminAddNewSuperUser(StatesGroup):
+    user_id = State()
+    name = State()
+    superuser_type_id = State()
+
+
+@router.callback_query(F.data == "add_new_superuser")
+async def add_new_superuser_callback(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    await callback.message.answer(
+        text=texts.sent_new_superuser,
+        reply_markup=keyboards.sent_user_id_bot
+    )
+    await state.set_state(SuperAdminAddNewSuperUser.user_id)
+
+
+@router.message(SuperAdminAddNewSuperUser.user_id)
+async def add_new_superuser_user_id(message: Message, state: FSMContext):
+    try:
+        user_id = int(message.text)
+    except Exception:
+        return await message.answer(
+            text=texts.sent_new_superuser_user_id_please,
+            reply_markup=keyboards.superadmin_menu_keyboard
+        )
+    await state.update_data({"user_id": user_id})
+
+    await message.answer(
+        text=texts.sent_name
+    )
+
+    await state.set_state(SuperAdminAddNewSuperUser.name)
+
+
+@router.message(SuperAdminAddNewSuperUser.name)
+async def add_new_superuser_name(message: Message, state: FSMContext):
+    name = message.text
+    await state.update_data({"name": name})
+
+    await message.answer(
+        text=texts.sent_superuser_role,
+        reply_markup=keyboards.roles
+    )
+
+    await state.set_state(SuperAdminAddNewSuperUser.superuser_type_id)
+
+
+@router.callback_query(F.data.startswith("set_role_"), SuperAdminAddNewSuperUser.superuser_type_id)
+async def set_role_callback(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+
+    data = await state.get_data()
+    await state.clear()
+
+    user_id = int(data["user_id"])
+    name = data["name"]
+    superuser_type_id = int(callback.data.split("_")[-1])
+
+    superuser = SuperUsers(
+        user_id=user_id,
+        name=name,
+        superuser_type=superuser_type_id
+    )
+    crud_superusers.create_superuser(superuser)
+    await callback.message.answer(
+        text="Сотрудник добавился и получил новые права",
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+
 
 @router.callback_query(F.data == "give_role_for_users")
 async def give_role_for_users_callback(callback: CallbackQuery):
-    await callback.answer("В доработке")
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+
+    await callback.message.answer(
+        text="Выберите действие",
+        reply_markup=keyboards.users_change
+    )
+
+
+class SuperUserDelete(StatesGroup):
+    phone_number = State()
+
+
+@router.callback_query(F.data == "delete_user")
+async def delete_user_callback(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    await callback.message.answer(
+        text="Отправьте номер пользователя в формате: 79..."
+    )
+    await state.set_state(SuperUserDelete.phone_number)
+
+
+@router.message(SuperUserDelete.phone_number)
+async def delete_user_by_phone_number(message: Message, state: FSMContext):
+    await state.clear()
+    phone_number = str(message.text)
+    phone_number = phone_number.replace("+", "")
+    id_ = crud_users.get_user_by_phone_number(phone_number)
+    if id_ is None:
+        return await message.answer(
+            text="Пользователя с таким номером в Базе Данных не существует",
+            reply_markup=keyboards.superadmin_menu_keyboard
+        )
+    crud_users.delete_user(id_)
+    await message.answer(
+        text="Пользователь удален из Базы Данных",
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+
+
+class AddNewUser(StatesGroup):
+    name = State()
+    inn = State()
+    phone_number = State()
+    due_date = State()
+
+
+@router.callback_query(F.data == "add_new_user")
+async def add_new_user_(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    await callback.message.answer(
+        text=texts.add_new_user_name_text,
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+    await state.set_state(AddNewUser.name)
+
+
+@router.message(AddNewUser.name)
+async def add_new_user_name(message: Message, state: FSMContext):
+    name = message.text
+    await state.update_data({"name": name})
+    await message.answer(
+        text=texts.add_new_user_inn_text,
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+    await state.set_state(AddNewUser.inn)
+
+
+@router.message(AddNewUser.inn)
+async def add_new_user_inn(message: Message, state: FSMContext):
+    inn = message.text
+    await state.update_data({"inn": inn})
+    await message.answer(
+        text=texts.add_new_user_phone_number_text,
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+    await state.set_state(AddNewUser.phone_number)
+
+
+@router.message(AddNewUser.phone_number)
+async def add_new_user_phone_number(message: Message, state: FSMContext):
+    phone_number = str(message.text)
+    phone_number = phone_number.replace('+', "")
+    await state.update_data({"phone_number": phone_number})
+    await message.answer(
+        text=texts.add_new_user_due_date_text,
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+    await state.set_state(AddNewUser.due_date)
+
+
+@router.message(AddNewUser.due_date)
+async def add_new_user_due_date(message: Message, state: FSMContext):
+    data = await state.get_data()
+    name = data["name"]
+    inn = data["inn"]
+    phone_number = data["phone_number"]
+    try:
+        due_date = int(message.text)
+    except Exception:
+        return await message.answer(
+            text="Введите число.",
+            reply_markup=keyboards.superadmin_menu_keyboard
+        )
+
+    await state.clear()
+    user = Users(
+        user_id=None,
+        name=name,
+        phone=phone_number,
+        inn=inn,
+        due_date=due_date,
+        meter_notification=True,
+        rent_notification=True,
+        auth=False,
+        was_deleted=False,
+        statements=None,
+        offices=None,
+    )
+    crud_users.create_user(user)
+    await message.answer(
+        text="Пользователь добавлен в Базу Данных",
+        reply_markup=keyboards.superadmin_menu_keyboard
+    )
+
+
+"""конец Функционала ..."""

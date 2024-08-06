@@ -18,6 +18,8 @@ def convert_date(date: datetime):
 def get_newsletters(users: list[UsersDB]):
     newsletters = list()
     for user in users:
+        if user.was_deleted:
+            continue
         offices = user.offices.split()
         for office in offices:
             newsletters.append([office, user.user_id])

@@ -12,3 +12,14 @@ def sort_statements(statements):
 
 def convert_date(date):
     return date.strftime('%d.%m.%Y, %H:%M')
+
+
+def get_newsletters(users):
+    newsletters = list()
+    for user in users:
+        if user.was_deleted:
+            continue
+        offices = user.offices.split()
+        for office in offices:
+            newsletters.append([office, user.user_id])
+    return newsletters

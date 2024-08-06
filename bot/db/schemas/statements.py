@@ -15,3 +15,6 @@ class Statements(Base):
     theme = Column(String)
     status = Column(Integer)
     office_id = Column(Integer)
+
+    def __repr__(self):
+        return str(self.id)

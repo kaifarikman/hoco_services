@@ -76,7 +76,25 @@ def create_user_message_function(message, album=None):
 
 
 async def send_pretty_statement(user_id, statement_id):
+    info = {
+        2: "Подача показаний счетчиков",
+        3: "Запрос прочей документации",
+        4: "Начисление КУ",
+        5: "Начисление аренды",
+        6: "Запрос акта сверки",
+    }
     statement = crud_statements.get_statement_by_id(statement_id)
+    user = crud_users.read_user(statement.user_id)
+    keyboard = keyboards.create_user_statement_keyboard(statement_id)
+
+    if statement.messages is None:
+        address = info[statement.task_type_id]
+        answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}"
+        return await bot.send_message(
+            chat_id=user_id,
+            text=answer,
+            reply_markup=keyboard
+        )
     messages = list(map(int, statement.messages.split()))
     office_id = statement.office_id
 
@@ -116,7 +134,6 @@ async def send_pretty_statement(user_id, statement_id):
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
 
-    keyboard = keyboards.create_user_statement_keyboard(statement_id)
     if len(multi) == 0:
         await bot.send_message(
             chat_id=user_id,
@@ -185,11 +202,16 @@ router = Router()
 @router.message(Command("start"))
 async def start_(message: Message, state: FSMContext):
     await state.clear()
-
     user_id = int(message.from_user.id)
+
     if not crud_users.get_user_auth_by_id(user_id):
         return await message.answer(
             text=texts.start_false_text,
+            reply_markup=keyboards.start_false_keyboard
+        )
+    if bool(crud_users.read_user(user_id).was_deleted):
+        return await message.answer(
+            text="Вас удалили из Базы Данных",
             reply_markup=keyboards.start_false_keyboard
         )
     await message.answer(
@@ -209,6 +231,11 @@ async def start_callback(callback: CallbackQuery, state: FSMContext):
     if not crud_users.get_user_auth_by_id(user_id):
         return await callback.message.answer(
             text=texts.start_false_text,
+            reply_markup=keyboards.start_false_keyboard
+        )
+    if bool(crud_users.read_user(user_id).was_deleted):
+        return await callback.message.answer(
+            text="Вас удалили из Базы Данных",
             reply_markup=keyboards.start_false_keyboard
         )
     await callback.message.answer(
@@ -253,11 +280,13 @@ async def inn_message(message: Message, state: FSMContext):
 async def phone_number_(message: Message, state: FSMContext):
     user_id = int(message.from_user.id)
     number = str(message.contact.phone_number)
+    number = number.replace("+", "")
     data = await state.get_data()
 
     await state.clear()
 
     inn = str(data["inn"])
+
     if not crud_users.get_user_by_inn_and_phone(inn, number):
         return await message.answer(
             text=texts.no_access,
@@ -408,9 +437,12 @@ async def my_statement_sent(message: Message, state: FSMContext, album: List[Mes
         superusers += crud_superusers.get_admins()
     else:
         superusers += crud_superusers.get_accountants()
+    admin_type = "admin"
+    if statement.task_type_id != 1:
+        admin_type = "accountant"
     for admin_id in superusers:
         await bot.send_message(
-            text=f"Пользователь ответил на заявку №{statement.id}",
+            text=f"Пользователь ответил на заявку «{statement.theme or '№' + statement.office_id}»\nПерейти к ней: /{admin_type}",
             chat_id=admin_id
         )
 

@@ -13,6 +13,7 @@ def create_superuser(superuser: SuperUsers):
     )
     session.add(superuser_db)
     session.commit()
+    return superuser_db.id
 
 
 def read_superuser(superuser_id: int):

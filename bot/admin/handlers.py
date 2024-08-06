@@ -86,8 +86,10 @@ async def send_pretty_statement(user_id, statement_id):
     for message_id in messages:
         message = crud_messages.read_message(message_id)
         user_type = "Пользователь"
-        if message.type_of_user == "admin":
+        if message.type_of_user in ["admin", "superadmin"]:
             user_type = "Админ"
+        if message.type_of_user == "accountant":
+            user_type = "Бухгалтер"
         date = utils.convert_date(message.date)
 
         text = ""
@@ -118,7 +120,7 @@ async def send_pretty_statement(user_id, statement_id):
             text=answer,
             reply_markup=keyboard
         )
-    if len(multi) == 1:
+    elif len(multi) == 1:
         multimedia_type, file_id = multi[0]
         if multimedia_type == "photo":
             await bot.send_message(
@@ -161,7 +163,6 @@ async def send_pretty_statement(user_id, statement_id):
             else:
                 element_add = InputMediaDocument(media=file_id, caption=None)
             media_group.append(element_add)
-        # TODO: rofllll
         await bot.send_media_group(
             chat_id=user_id,
             media=media_group
@@ -251,6 +252,7 @@ async def dummy_callback(callback: CallbackQuery):
 async def admin_statement_callback(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
+    await state.clear()
 
     statement_id = int(callback.data.split("_")[-1])
 
@@ -393,6 +395,9 @@ async def answer_to_user(message: Message, state: FSMContext, album: List[Messag
     )
 
 
+"""end answer_statement"""
+
+
 @router.callback_query(F.data == "send_newsletter_to_user")
 async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -413,6 +418,7 @@ async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("change_newsletter_data_"))
 async def change_data_(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    await state.clear()
     data = str(callback.data).split("_")
     page = int(data[-1])
 
