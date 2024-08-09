@@ -14,14 +14,14 @@ def create_message(message: Messages):
     )
     session.add(message_db)
     session.commit()
-    session.close()
+
     return message_db.id
 
 
 def read_message(message_id: int):
     session = sessionmaker(engine)()
     query = session.query(MessagesDB).filter_by(id=message_id).first()
-    session.close()
+
     return query
 
 
@@ -30,7 +30,6 @@ def update_message(message_id: int, new_multimedia: str):
     query = session.query(MessagesDB).filter_by(id=message_id).first()
     query.multimedia = new_multimedia
     session.commit()
-    session.close()
 
 
 def delete_message(message_id: int):
@@ -38,4 +37,3 @@ def delete_message(message_id: int):
     query = session.query(MessagesDB).filter_by(id=message_id)
     query.delete()
     session.commit()
-    session.close()

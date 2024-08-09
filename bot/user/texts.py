@@ -36,7 +36,7 @@ meter_readings_sent_text = "Показания счетчиков отправл
 no_meter_readings_sent_text = "Вы отменили отправку показаний счетчиков"
 select_counter_text = "Выберите тип счетчика"
 request_for_other_documentation_text = "Введите необходимую документацию для запроса"
-documentation_sent = "Документация отправлена(change?)"
+documentation_sent = "Документация отправлена на обработку"
 ku_text = (
     """Ваша заявка начисление КУ принята, ожидайте ответ в разделе "Мои заявки" """
 )

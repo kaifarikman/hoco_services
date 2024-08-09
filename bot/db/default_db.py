@@ -65,7 +65,11 @@ def create_start_db():
     crud_offices.create_office(office2)
     crud_offices.create_office(office3)
 
-    superuser = SuperUsers(user_id=6980676960, name="Luka Math", superuser_type=1)
+    superuser = SuperUsers(
+        user_id=6980676960,
+        name="Luka Math(суперадмин)",
+        superuser_type=1
+    )
     crud_superusers.create_superuser(superuser)
 
     superuser = SuperUsers(
@@ -81,6 +85,22 @@ def create_start_db():
         superuser_type=1
     )
     crud_superusers.create_superuser(superuser)
+
+    # user = Users(
+    #     user_id=None,
+    #     name="tagir",
+    #     phone="79867119714",
+    #     inn="123",
+    #     due_date=1,
+    #     meter_notification=True,
+    #     rent_notification=True,
+    #     auth=False,
+    #     was_deleted=False,
+    #     statements=None,
+    #     offices="1",
+    # )
+    # crud_users.create_user(user)
+
     user = Users(
         user_id=None,
         name="Альберт",
@@ -92,26 +112,26 @@ def create_start_db():
         auth=False,
         was_deleted=False,
         statements=None,
-        offices="1 2",
-    )
-    crud_users.create_user(user)
-    user = Users(
-        user_id=None,
-        name="Амир Князев",
-        phone="79393167376",
-        inn="123",
-        due_date=1,
-        meter_notification=True,
-        rent_notification=True,
-        auth=False,
-        was_deleted=False,
-        statements=None,
-        offices="1 2",
+        offices="1",
     )
     crud_users.create_user(user)
     # user = Users(
     #     user_id=None,
-    #     name="Александр",
+    #     name="",
+    #     phone="79393167376",
+    #     inn="123",
+    #     due_date=1,
+    #     meter_notification=True,
+    #     rent_notification=True,
+    #     auth=False,
+    #     was_deleted=False,
+    #     statements=None,
+    #     offices="3",
+    # )
+    # crud_users.create_user(user)
+    # user = Users(
+    #     user_id=None,
+    #     name="ефпшке",
     #     phone="79869320203",
     #     inn="123",
     #     due_date=1,

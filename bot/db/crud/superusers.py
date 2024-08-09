@@ -13,14 +13,14 @@ def create_superuser(superuser: SuperUsers):
     )
     session.add(superuser_db)
     session.commit()
-    session.close()
+    
     return superuser_db.id
 
 
 def read_superuser(superuser_id: int):
     session = sessionmaker(engine)()
     query = session.query(SuperUsersDB).filter_by(id=superuser_id).first()
-    session.close()
+    
     return query
 
 
@@ -29,7 +29,7 @@ def update_superuser(superuser_id: int, superuser_type: int):
     query = session.query(SuperUsersDB).filter_by(id=superuser_id).first()
     query.superuser_type = superuser_type
     session.commit()
-    session.close()
+    
 
 
 def delete_superuser(superuser_id: int):
@@ -37,7 +37,7 @@ def delete_superuser(superuser_id: int):
     query = session.query(SuperUsersDB).filter_by(id=superuser_id)
     query.delete()
     session.commit()
-    session.close()
+    
 
 
 def get_superuser(user_id, access_roles):
@@ -49,7 +49,7 @@ def get_superuser(user_id, access_roles):
         )
         .first()
     )
-    session.close()
+    
     if query is None:
         return False
 
@@ -67,7 +67,7 @@ def get_superuser_role(user_id):
         )
         .first()
     )
-    session.close()
+    
     if query is None:
         return False
     return query.superuser_type
@@ -76,26 +76,26 @@ def get_superuser_role(user_id):
 def get_superusers():
     session = sessionmaker(engine)()
     query = session.query(SuperUsersDB).all()
-    session.close()
+    
     return query
 
 
 def get_superadmins() -> list[int]:
     session = sessionmaker(engine)()
     query = session.query(SuperUsersDB).filter_by(superuser_type=1).all()
-    session.close()
+    
     return [i.user_id for i in query]
 
 
 def get_admins() -> list[int]:
     session = sessionmaker(engine)()
     query = session.query(SuperUsersDB).filter_by(superuser_type=2).all()
-    session.close()
+    
     return [i.user_id for i in query]
 
 
 def get_accountants() -> list[int]:
     session = sessionmaker(engine)()
     query = session.query(SuperUsersDB).filter_by(superuser_type=3).all()
-    session.close()
+    
     return [i.user_id for i in query]

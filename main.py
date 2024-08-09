@@ -12,6 +12,8 @@ from bot.admin.handlers import router as admin_router
 from bot.accountant.handlers import router as accountant_router
 from bot.db.db import create_tables
 import bot.db.default_db as default_db
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import bot.mailer as mailer
 
 
 async def main():
@@ -23,7 +25,9 @@ async def main():
     dp.include_router(admin_router)
     dp.include_router(accountant_router)
     dp.include_router(user_router)
-
+    shed = AsyncIOScheduler(timezone='Europe/Moscow')
+    shed.add_job(mailer.mailer, "cron", day=1, hour=0, minute=0)
+    shed.start()
     await dp.start_polling(bot)
 
 

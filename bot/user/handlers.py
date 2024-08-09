@@ -405,12 +405,13 @@ async def my_statement_sent(
         superusers += crud_superusers.get_admins()
     else:
         superusers += crud_superusers.get_accountants()
+
     admin_type = "admin"
     if statement.task_type_id != 1:
         admin_type = "accountant"
     for admin_id in superusers:
         await bot.send_message(
-            text=f"Пользователь ответил на заявку «{statement.theme or '№' + statement.office_id}»\nПерейти к ней: /{admin_type}",
+            text=f"Пользователь ответил на заявку «{statement.theme or '№' + str(statement.office_id)}»\nПерейти к ней: /{admin_type}",
             chat_id=admin_id,
         )
 
@@ -464,7 +465,7 @@ async def new_statement_description(
     admins += crud_superusers.get_superadmins()
     for admin_id in admins:
         await bot.send_message(
-            text="Пользователь оставил новую заявку", chat_id=admin_id
+            text="Пользователь оставил новую заявку. /admin", chat_id=admin_id
         )
 
     user_id = int(message.from_user.id)
@@ -680,7 +681,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков", chat_id=accountant_id
+            text="Пользователь подал показания счетчиков. /accountant", chat_id=accountant_id
         )
 
 
@@ -758,7 +759,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков", chat_id=accountant_id
+            text="Пользователь подал показания счетчиков. /accountant", chat_id=accountant_id
         )
 
 
@@ -826,7 +827,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков", chat_id=accountant_id
+            text="Пользователь подал показания счетчиков. /accountant", chat_id=accountant_id
         )
 
 
@@ -893,7 +894,7 @@ async def request_for_other_documentation_request(
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь оставил заявку на запрос прочей документации",
+            text="Пользователь оставил заявку на запрос прочей документации. /accountant",
             chat_id=accountant_id,
         )
 
@@ -968,7 +969,7 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь запросил начисление КУ", chat_id=accountant_id
+            text="Пользователь запросил начисление КУ. /accountant", chat_id=accountant_id
         )
 
 
@@ -1006,7 +1007,7 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь запросил акт сверки", chat_id=accountant_id
+            text="Пользователь запросил начисление аренды. /accountant", chat_id=accountant_id
         )
 
 
@@ -1046,10 +1047,15 @@ async def request_for_reconciliation_report_callback(
 
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
+    print(accountant)
     for accountant_id in accountant:
-        await bot.send_message(
-            text="Пользователь оставил запрос акта и сверки", chat_id=accountant_id
-        )
+        try:
+            await bot.send_message(
+                text="Пользователь оставил запрос акта и сверки. /accountant",
+                chat_id=accountant_id
+            )
+        except:
+            print(accountant_id)
 
 
 @router.message(Command("create_me"))

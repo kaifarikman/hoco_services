@@ -600,7 +600,7 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
         auth=False,
         was_deleted=False,
         statements=None,
-        offices=office_id,
+        offices=str(office_id),
     )
 
     crud_users.create_user(user)

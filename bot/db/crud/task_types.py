@@ -9,13 +9,13 @@ def create_task_type(task_type_: TaskTypes):
     task_type_db = TaskTypesDB(task_type=task_type_.task_type)
     session.add(task_type_db)
     session.commit()
-    session.close()
+    
 
 
 def get_task_type_by_id(task_type_id: int):
     session = sessionmaker(engine)()
     query = session.query(TaskTypesDB).filter_by(id=task_type_id).first()
-    session.close()
+    
     if query:
         return query.task_type
     return None
