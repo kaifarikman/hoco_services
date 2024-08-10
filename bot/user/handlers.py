@@ -42,10 +42,8 @@ def create_user_message_function(message, album=None):
             s = f"video[]{media_id}[]{caption}"
             lst.append(s)
         elif message.document:
-            document_id = message.document.file_id
-            caption = message.caption
-            s = f"document[]{document_id}[]{caption}"
-            lst.append(s)
+            return "no format"
+
         elif message.text:
             s = f"text[]None[]{message.text}"
             lst.append(s)
@@ -62,11 +60,6 @@ def create_user_message_function(message, album=None):
                 media_id = element.video.file_id
                 caption = element.caption
                 s = f"video[]{media_id}[]{caption}"
-                lst.append(s)
-            elif message.document:
-                document_id = message.document.file_id
-                caption = message.caption
-                s = f"document[]{document_id}[]{caption}"
                 lst.append(s)
             else:
                 return "no format"
@@ -113,6 +106,9 @@ async def send_pretty_statement(user_id, statement_id):
             user_type = "Админ"
         date = utils.convert_date(message.date)
 
+# admin + superadmin - media only
+# accountant - documents only
+
         text = ""
         multimedia = message.multimedia.split("{{}}")
         for i in multimedia:
@@ -126,10 +122,14 @@ async def send_pretty_statement(user_id, statement_id):
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -352,7 +352,7 @@ async def sent_to_admin(callback: CallbackQuery, state: FSMContext):
 
 @router.message(SentToAdmin.text)
 async def my_statement_sent(
-    message: Message, state: FSMContext, album: List[Message] = None
+        message: Message, state: FSMContext, album: List[Message] = None
 ):
     if message.voice:
         return await message.answer(
@@ -381,6 +381,7 @@ async def my_statement_sent(
             text=texts.to_long,
             reply_markup=keyboards.back_keyboard,
         )
+
     data = "{{}}".join(lst)
     multimedia = data
     user_id = int(message.from_user.id)
@@ -435,7 +436,7 @@ async def new_statement_callback(callback: CallbackQuery, state: FSMContext):
 
 @router.message(NewStatement.description)
 async def new_statement_description(
-    message: Message, state: FSMContext, album: List[Message] = None
+        message: Message, state: FSMContext, album: List[Message] = None
 ):
     if message.voice:
         return await message.answer(
@@ -851,7 +852,7 @@ class RequestForOtherDocumentation(StatesGroup):
 
 @router.callback_query(F.data == "request_for_other_documentation")
 async def request_for_other_documentation_callback(
-    callback: CallbackQuery, state: FSMContext
+        callback: CallbackQuery, state: FSMContext
 ):
     await callback.answer()
     await callback.message.edit_reply_markup()
@@ -866,7 +867,7 @@ async def request_for_other_documentation_callback(
 
 @router.message(RequestForOtherDocumentation.request)
 async def request_for_other_documentation_request(
-    message: Message, state: FSMContext, album: List[Message] = None
+        message: Message, state: FSMContext, album: List[Message] = None
 ):
     if message.voice:
         return await message.answer(
@@ -1013,7 +1014,7 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "request_for_reconciliation_report")
 async def request_for_reconciliation_report_callback(
-    callback: CallbackQuery, state: FSMContext
+        callback: CallbackQuery, state: FSMContext
 ):
     await callback.answer()
     await callback.message.edit_reply_markup()

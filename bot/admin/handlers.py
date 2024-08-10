@@ -35,11 +35,6 @@ def create_user_message_function(message, album=None):
             caption = message.caption
             s = f"video[]{media_id}[]{caption}"
             lst.append(s)
-        elif message.document:
-            document_id = message.document.file_id
-            caption = message.caption
-            s = f"document[]{document_id}[]{caption}"
-            lst.append(s)
         elif message.text:
             s = f"text[]None[]{message.text}"
             lst.append(s)
@@ -56,11 +51,6 @@ def create_user_message_function(message, album=None):
                 media_id = element.video.file_id
                 caption = element.caption
                 s = f"video[]{media_id}[]{caption}"
-                lst.append(s)
-            elif message.document:
-                document_id = message.document.file_id
-                caption = message.caption
-                s = f"document[]{document_id}[]{caption}"
                 lst.append(s)
             else:
                 return "no format"
@@ -107,10 +97,14 @@ async def send_pretty_statement(user_id, statement_id):
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -330,7 +324,11 @@ async def answer_to_user(
     statement_id = int((await state.get_data())["statement_id"])
     user_id = int(message.from_user.id)
     await state.clear()
-
+    if message.document or message.voice:
+        return await message.answer(
+            text="Запрещено отправлять cообщения данного типа. Отправьте медиа",
+            reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
+        )
     lst = create_user_message_function(message=message, album=album)
     if lst == "no format":
         return await message.answer(

@@ -72,12 +72,12 @@ def create_start_db():
     )
     crud_superusers.create_superuser(superuser)
 
-    superuser = SuperUsers(
-        user_id=85288369,
-        name="Егор",
-        superuser_type=1
-    )
-    crud_superusers.create_superuser(superuser)
+    # superuser = SuperUsers(
+    #     user_id=85288369,
+    #     name="Егор",
+    #     superuser_type=1
+    # )
+    # crud_superusers.create_superuser(superuser)
 
     superuser = SuperUsers(
         user_id=128518307,
@@ -85,21 +85,6 @@ def create_start_db():
         superuser_type=1
     )
     crud_superusers.create_superuser(superuser)
-
-    # user = Users(
-    #     user_id=None,
-    #     name="tagir",
-    #     phone="79867119714",
-    #     inn="123",
-    #     due_date=1,
-    #     meter_notification=True,
-    #     rent_notification=True,
-    #     auth=False,
-    #     was_deleted=False,
-    #     statements=None,
-    #     offices="1",
-    # )
-    # crud_users.create_user(user)
 
     user = Users(
         user_id=None,
@@ -115,31 +100,4 @@ def create_start_db():
         offices="1",
     )
     crud_users.create_user(user)
-    # user = Users(
-    #     user_id=None,
-    #     name="",
-    #     phone="79393167376",
-    #     inn="123",
-    #     due_date=1,
-    #     meter_notification=True,
-    #     rent_notification=True,
-    #     auth=False,
-    #     was_deleted=False,
-    #     statements=None,
-    #     offices="3",
-    # )
-    # crud_users.create_user(user)
-    # user = Users(
-    #     user_id=None,
-    #     name="ефпшке",
-    #     phone="79869320203",
-    #     inn="123",
-    #     due_date=1,
-    #     meter_notification=True,
-    #     rent_notification=True,
-    #     auth=False,
-    #     was_deleted=False,
-    #     statements=None,
-    #     offices="2",
-    # )
-    # crud_users.create_user(user)
+

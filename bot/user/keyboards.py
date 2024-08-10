@@ -8,8 +8,8 @@ import bot.db.crud.statements as crud_statements
 
 def user_statements_keyboard(user_statements: list[Statements], page):
     buttons = []
-    ind = (page - 1) * 8
-    for _ in range(8):
+    ind = (page - 1) * 30
+    for _ in range(30):
         try:
             statement = user_statements[ind]
             office_id = statement.office_id

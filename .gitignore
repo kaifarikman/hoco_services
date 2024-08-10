@@ -165,5 +165,5 @@ cython_debug/
 .idea/
 data.txt
 bot/db/db.db
-bot/db/default_db.py
+/bot/db/default_db.py
 config.py

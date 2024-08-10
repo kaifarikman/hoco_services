@@ -153,6 +153,8 @@ def select_an_employee_for_settings(superusers):
     buttons = []
     for superuser in superusers:
         text = superuser.name
+        if superuser.user_id == 6980676960:
+            continue
         callback_data = f"superuser_id_for_select_{superuser.id}"
         buttons.append([InlineKeyboardButton(text=text, callback_data=callback_data)])
     buttons.append(

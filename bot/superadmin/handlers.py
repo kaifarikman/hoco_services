@@ -71,10 +71,14 @@ async def send_to_archive(statement_id):
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -611,3 +615,4 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
 
 
 """конец Функционала ..."""
+# заявка завершена? ответ

@@ -78,10 +78,14 @@ async def send_pretty_statement(user_id, statement_id):
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
+                else:
+                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -128,17 +132,7 @@ async def send_pretty_statement(user_id, statement_id):
 def create_user_message_function(message, album=None):
     lst = []
     if album is None:
-        if message.photo:
-            media_id = message.photo[-1].file_id
-            caption = message.caption
-            s = f"photo[]{media_id}[]{caption}"
-            lst.append(s)
-        elif message.video:
-            media_id = message.video.file_id
-            caption = message.caption
-            s = f"video[]{media_id}[]{caption}"
-            lst.append(s)
-        elif message.document:
+        if message.document:
             document_id = message.document.file_id
             caption = message.caption
             s = f"document[]{document_id}[]{caption}"
@@ -150,19 +144,9 @@ def create_user_message_function(message, album=None):
             return "no format"
     else:
         for element in album:
-            if element.photo:
-                media_id = element.photo[-1].file_id
+            if element.document:
+                document_id = element.document.file_id
                 caption = element.caption
-                s = f"photo[]{media_id}[]{caption}"
-                lst.append(s)
-            elif element.video:
-                media_id = element.video.file_id
-                caption = element.caption
-                s = f"video[]{media_id}[]{caption}"
-                lst.append(s)
-            elif message.document:
-                document_id = message.document.file_id
-                caption = message.caption
                 s = f"document[]{document_id}[]{caption}"
                 lst.append(s)
             else:
@@ -257,7 +241,7 @@ class AccountantStatementTheme(StatesGroup):
 
 @router.callback_query(F.data.startswith("accountant_select_statement_theme_"))
 async def accountant_select_statement_theme_(
-    callback: CallbackQuery, state: FSMContext
+        callback: CallbackQuery, state: FSMContext
 ):
     await callback.answer()
     await callback.message.edit_reply_markup()
@@ -317,7 +301,7 @@ class AccountantAnswerStatement(StatesGroup):
 
 @router.callback_query(F.data.startswith("accountant_answer_statement_"))
 async def accountant_answer_statement_callback_(
-    callback: CallbackQuery, state: FSMContext
+        callback: CallbackQuery, state: FSMContext
 ):
     await state.clear()
     statement_id = int(callback.data.split("_")[-1])
@@ -336,7 +320,7 @@ async def accountant_answer_statement_callback_(
 
 @router.message(AccountantAnswerStatement.sent_answer)
 async def answer_to_user(
-    message: Message, state: FSMContext, album: List[Message] = None
+        message: Message, state: FSMContext, album: List[Message] = None
 ):
     statement_id = int((await state.get_data())["statement_id"])
     user_id = int(message.from_user.id)
@@ -349,6 +333,11 @@ async def answer_to_user(
         5: "Начисление аренды",
         6: "Запрос акта сверки",
     }
+    if message.photo or message.voice:
+        return await message.answer(
+            text="Запрещено отправлять cообщения данного типа. Отправьте документ",
+            reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
+        )
     lst = create_user_message_function(message=message, album=album)
     if lst == "no format":
         return await message.answer(
@@ -358,6 +347,11 @@ async def answer_to_user(
     if lst == "to_long":
         return await message.answer(
             text=texts.to_long,
+            reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
+        )
+    if lst == "no_photo":
+        return await message.answer(
+            text="Запрещено отправлять cообщения данного типа. Отправьте документ",
             reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
         )
     data = "{{}}".join(lst)

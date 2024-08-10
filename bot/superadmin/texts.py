@@ -24,11 +24,11 @@ add_new_user_inn_text = "Введите ИНН пользователя"
 add_new_user_phone_number_text = (
     "Введите номер телефона пользователя.\nФормат: начинается с 79"
 )
-add_new_user_due_date_text = "Введите срок оплаты аренды пользователя"
+add_new_user_due_date_text = "Введите срок оплаты аренды пользователя.\n Например: 13"
 sent_new_superuser = "Отправьте user_id в телеграмме нового сотрудника"
 sent_new_superuser_user_id_please = "Отправьте user_id в числовом типе"
 sent_name = "Введите имя пользователя"
 sent_superuser_role = "Выберите роль для пользователя"
 add_new_user_office_address_text = "Введите адрес офиса пользователя."
 add_new_user_office_office_number_text = "Введите номер офиса пользователя."
-add_new_user_office_meters_text = "Введите счетчики через пробел.1 - Электричество, 2 - Вода"
+add_new_user_office_meters_text = "Введите счетчики через пробел. 1 - Электричество, 2 - Вода"
