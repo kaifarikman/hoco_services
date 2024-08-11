@@ -140,7 +140,7 @@ def newsletter_choice(newsletters, page):
 give_role_buttons = [
     [
         InlineKeyboardButton(
-            text="Суперпользователи", callback_data="give_role_for_superusers"
+            text="Администрация", callback_data="give_role_for_superusers"
         )
     ],
     [InlineKeyboardButton(text="Пользователи", callback_data="give_role_for_users")],
@@ -244,6 +244,7 @@ roles = InlineKeyboardMarkup(inline_keyboard=roles_buttons)
 users_change_buttons = [
     [InlineKeyboardButton(text="Добавить пользователя", callback_data="add_new_user")],
     [InlineKeyboardButton(text="Удалить пользователя", callback_data="delete_user")],
+    [InlineKeyboardButton(text="Главное меню", callback_data="superadmin")],
 ]
 
 users_change = InlineKeyboardMarkup(inline_keyboard=users_change_buttons)

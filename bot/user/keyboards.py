@@ -9,6 +9,13 @@ import bot.db.crud.statements as crud_statements
 def user_statements_keyboard(user_statements: list[Statements], page):
     buttons = []
     ind = (page - 1) * 30
+    info = {
+        2: "Подача показаний счетчиков",
+        3: "Запрос прочей документации",
+        4: "Начисление КУ",
+        5: "Начисление аренды",
+        6: "Запрос акта сверки",
+    }
     for _ in range(30):
         try:
             statement = user_statements[ind]
@@ -23,7 +30,10 @@ def user_statements_keyboard(user_statements: list[Statements], page):
                 text += "✅"
             text += address + ", "
             if statement.theme is None:
-                text += f"№{office_id}"
+                if statement.task_type_id == 1:
+                    text += f"№{office_id}"
+                else:
+                    text += f"{info[statement.task_type_id]}"
             else:
                 text += f"{statement.theme}"
             callback_data = f"my_user_statements_{statement.id}"
@@ -203,3 +213,12 @@ go_to_send_statement_high_buttons = [
 go_to_send_statement_keyboard_high = InlineKeyboardMarkup(
     inline_keyboard=go_to_send_statement_high_buttons
 )
+
+
+def go_to_statement_by_statement_id(adm_type, statement_id):
+    buttons = [
+        [
+            InlineKeyboardButton(text="Перейти в заявку", callback_data=f"{adm_type}_statement_{statement_id}")
+        ]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

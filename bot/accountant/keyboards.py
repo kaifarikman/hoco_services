@@ -141,11 +141,14 @@ def go_to_statement_menu(user_id, statement_id):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def go_to_accountant_menu_keyboard(user_id):
+def go_to_accountant_menu_keyboard(user_id, statement_id):
     menu = "accountant"
     if crud_superusers.get_superuser_role(user_id) == 1:
         menu = "superadmin"
     buttons = [
+        [
+            InlineKeyboardButton(text="Продолжить ответ", callback_data=f"accountant_answer_statement_{statement_id}")
+        ],
         [InlineKeyboardButton(text="Выйти в меню бухгалтера", callback_data=menu)]
     ]
 
@@ -158,9 +161,10 @@ user_menu_buttons = [
 
 user_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=user_menu_buttons)
 
-user_go_to_statements_buttons = [
-    [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")]
-]
-user_go_to_statements_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=user_go_to_statements_buttons
-)
+
+def user_go_to_statements_keyboard(statement_id):
+    buttons = [
+        [InlineKeyboardButton(text="Перейти в заявку", callback_data=f"my_user_statements_{statement_id}")],
+        [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

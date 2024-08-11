@@ -34,6 +34,14 @@ import bot.superadmin.utils as utils
 
 async def send_to_archive(statement_id):
     """also this is how send_pretty_statement, but to archive"""
+    info = {
+        1: "Новая заявка",
+        2: "Подача показаний счетчиков",
+        3: "Запрос прочей документации",
+        4: "Начисление КУ",
+        5: "Начисление аренды",
+        6: "Запрос акта сверки",
+    }
     user_id = config.archive_group
     statement = crud_statements.get_statement_by_id(statement_id)
     messages = list(map(int, statement.messages.split()))
@@ -47,7 +55,7 @@ async def send_to_archive(statement_id):
         )
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\n"
+    answer = f"{address}\nЗаявка №{statement.id}. Тип заявки: {info[statement.task_type_id]}\nот {user.name}\n+{user.phone}\n"
     multi = list()
     for message_id in messages:
         message = crud_messages.read_message(message_id)
@@ -64,21 +72,17 @@ async def send_to_archive(statement_id):
             multy_type, file_id, caption = i.split("[]")
             if multy_type == "text":
                 text = caption
-            elif multy_type != "text" and caption is not None:
+            elif multy_type != "text" and caption != "None":
                 text = caption
                 multi.append([multy_type, file_id])
-            elif multy_type != "text" and caption is None:
+            elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
-                else:
-                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
-                else:
-                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -331,7 +335,7 @@ async def yes_go_to_pls(callback: CallbackQuery, state: FSMContext):
     }
     crud_superusers.update_superuser(int(superuser_id), d[superuser_type])
     await callback.message.answer(
-        text="Статус суперпользователя успешно сменен",
+        text="Статус администратора успешно сменен",
         reply_markup=keyboards.superadmin_menu_keyboard,
     )
 

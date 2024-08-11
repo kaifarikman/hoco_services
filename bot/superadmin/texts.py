@@ -8,7 +8,7 @@ def seriously_give_role(superuser_type, name):
 
 
 def really_delete_person(superuser):
-    return f"Вы действительно хотите удалить {superuser.name} из Базы Данных суперпользователей?"
+    return f"Вы действительно хотите удалить {superuser.name} из Базы Данных администрации?"
 
 
 no_access = "У вас нет доступа"
@@ -24,7 +24,7 @@ add_new_user_inn_text = "Введите ИНН пользователя"
 add_new_user_phone_number_text = (
     "Введите номер телефона пользователя.\nФормат: начинается с 79"
 )
-add_new_user_due_date_text = "Введите срок оплаты аренды пользователя.\n Например: 13"
+add_new_user_due_date_text = "Введите срок оплаты аренды пользователя.\nНапример: 13"
 sent_new_superuser = "Отправьте user_id в телеграмме нового сотрудника"
 sent_new_superuser_user_id_please = "Отправьте user_id в числовом типе"
 sent_name = "Введите имя пользователя"

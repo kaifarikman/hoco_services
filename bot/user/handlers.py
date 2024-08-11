@@ -41,9 +41,6 @@ def create_user_message_function(message, album=None):
             caption = message.caption
             s = f"video[]{media_id}[]{caption}"
             lst.append(s)
-        elif message.document:
-            return "no format"
-
         elif message.text:
             s = f"text[]None[]{message.text}"
             lst.append(s)
@@ -105,31 +102,23 @@ async def send_pretty_statement(user_id, statement_id):
         if message.type_of_user == "admin":
             user_type = "Админ"
         date = utils.convert_date(message.date)
-
-# admin + superadmin - media only
-# accountant - documents only
-
         text = ""
         multimedia = message.multimedia.split("{{}}")
         for i in multimedia:
             multy_type, file_id, caption = i.split("[]")
             if multy_type == "text":
                 text = caption
-            elif multy_type != "text" and caption is not None:
+            elif multy_type != "text" and caption != "None":
                 text = caption
                 multi.append([multy_type, file_id])
-            elif multy_type != "text" and caption is None:
+            elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
-                else:
-                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
-                else:
-                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -354,7 +343,7 @@ async def sent_to_admin(callback: CallbackQuery, state: FSMContext):
 async def my_statement_sent(
         message: Message, state: FSMContext, album: List[Message] = None
 ):
-    if message.voice:
+    if message.voice or message.document:
         return await message.answer(
             text=texts.you_cant_send_voice_messages,
             reply_markup=keyboards.back_keyboard,
@@ -412,7 +401,8 @@ async def my_statement_sent(
         admin_type = "accountant"
     for admin_id in superusers:
         await bot.send_message(
-            text=f"Пользователь ответил на заявку «{statement.theme or '№' + str(statement.office_id)}»\nПерейти к ней: /{admin_type}",
+            text=f"Пользователь ответил на заявку «{statement.theme or '№' + str(statement.office_id)}»\n",
+            reply_markup=keyboards.go_to_statement_by_statement_id(admin_type, statement_id),
             chat_id=admin_id,
         )
 
@@ -438,7 +428,7 @@ async def new_statement_callback(callback: CallbackQuery, state: FSMContext):
 async def new_statement_description(
         message: Message, state: FSMContext, album: List[Message] = None
 ):
-    if message.voice:
+    if message.voice or message.document:
         return await message.answer(
             text=texts.you_cant_send_voice_messages,
             reply_markup=keyboards.back_keyboard,
@@ -461,13 +451,6 @@ async def new_statement_description(
         text=texts.application_sent_for_moderation,
         reply_markup=keyboards.back_keyboard,
     )
-
-    admins = crud_superusers.get_admins()
-    admins += crud_superusers.get_superadmins()
-    for admin_id in admins:
-        await bot.send_message(
-            text="Пользователь оставил новую заявку. /admin", chat_id=admin_id
-        )
 
     user_id = int(message.from_user.id)
     type_of_user = "user"
@@ -502,6 +485,15 @@ async def new_statement_description(
 
     statement_id = crud_statements.create_statement(statement_db)
     crud_users.add_statement(user_id, statement_id)
+
+    adm_type = "admin"
+    admins = crud_superusers.get_admins()
+    admins += crud_superusers.get_superadmins()
+    for admin_id in admins:
+        await bot.send_message(
+            text="Пользователь оставил новую заявку.", chat_id=admin_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+        )
 
     await state.clear()
 
@@ -540,7 +532,6 @@ async def submit_meter_readings_callback(callback: CallbackQuery, state: FSMCont
     user_id = int(callback.from_user.id)
 
     offices = crud_users.get_user_offices(user_id)
-    print(offices)
     if offices is None:
         return await callback.message.answer(
             text=texts.no_offices_yet, reply_markup=keyboards.back_keyboard
@@ -677,12 +668,13 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     )
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
-
+    adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков. /accountant", chat_id=accountant_id
+            text="Пользователь подал показания счетчиков.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
         )
 
 
@@ -756,11 +748,13 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
 
+    adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков. /accountant", chat_id=accountant_id
+            text="Пользователь подал показания счетчиков.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
         )
 
 
@@ -824,11 +818,13 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
 
+    adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков. /accountant", chat_id=accountant_id
+            text="Пользователь подал показания счетчиков.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
         )
 
 
@@ -869,7 +865,7 @@ async def request_for_other_documentation_callback(
 async def request_for_other_documentation_request(
         message: Message, state: FSMContext, album: List[Message] = None
 ):
-    if message.voice:
+    if message.voice or message.document:
         return await message.answer(
             text=texts.you_cant_send_voice_messages,
             reply_markup=keyboards.back_keyboard,
@@ -890,14 +886,6 @@ async def request_for_other_documentation_request(
     await message.answer(
         text=texts.documentation_sent, reply_markup=keyboards.back_keyboard
     )
-
-    accountant = crud_superusers.get_accountants()
-    accountant += crud_superusers.get_superadmins()
-    for accountant_id in accountant:
-        await bot.send_message(
-            text="Пользователь оставил заявку на запрос прочей документации. /accountant",
-            chat_id=accountant_id,
-        )
 
     user_id = int(message.from_user.id)
     type_of_user = "user"
@@ -932,7 +920,14 @@ async def request_for_other_documentation_request(
 
     statement_id = crud_statements.create_statement(statement_db)
     crud_users.add_statement(user_id, statement_id)
-
+    adm_type = "accountant"
+    accountant = crud_superusers.get_accountants()
+    accountant += crud_superusers.get_superadmins()
+    for accountant_id in accountant:
+        await bot.send_message(
+            text="Пользователь оставил заявку на запрос прочей документации.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+        )
     await state.clear()
 
 
@@ -966,11 +961,13 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=texts.ku_text, reply_markup=keyboards.back_keyboard
     )
+    adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь запросил начисление КУ. /accountant", chat_id=accountant_id
+            text="Пользователь запросил начисление КУ.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
         )
 
 
@@ -1004,11 +1001,14 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=texts.rent_accuracy_text, reply_markup=keyboards.back_keyboard
     )
+
+    adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь запросил начисление аренды. /accountant", chat_id=accountant_id
+            text="Пользователь запросил начисление аренды.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
         )
 
 
@@ -1046,17 +1046,14 @@ async def request_for_reconciliation_report_callback(
         reply_markup=keyboards.back_keyboard,
     )
 
+    adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
-    print(accountant)
     for accountant_id in accountant:
-        try:
-            await bot.send_message(
-                text="Пользователь оставил запрос акта и сверки. /accountant",
-                chat_id=accountant_id
-            )
-        except:
-            print(accountant_id)
+        await bot.send_message(
+            text="Пользователь оставил запрос акта и сверки.", chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+        )
 
 
 @router.message(Command("create_me"))
@@ -1075,3 +1072,10 @@ async def create_me(message: Message):
         offices="1 2",
     )
     crud_users.create_user(user)
+
+
+@router.message()
+async def echo_message(message: Message):
+    await message.answer(
+        text=texts.error_format_message
+    )

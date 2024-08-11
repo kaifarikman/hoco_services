@@ -90,21 +90,17 @@ async def send_pretty_statement(user_id, statement_id):
             multy_type, file_id, caption = i.split("[]")
             if multy_type == "text":
                 text = caption
-            elif multy_type != "text" and caption is not None:
+            elif multy_type != "text" and caption != "None":
                 text = caption
                 multi.append([multy_type, file_id])
-            elif multy_type != "text" and caption is None:
+            elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
-                else:
-                    text = multy_type.capitalize()
             else:
                 multi.append([multy_type, file_id])
                 if not text:
                     text = "Текст не написан"
-                else:
-                    text = multy_type.capitalize()
 
         line = f"{user_type}, {date}:\n{text}\n"
         answer += line
@@ -362,13 +358,13 @@ async def answer_to_user(
 
     await bot.send_message(
         chat_id=user_id,
-        text=f"Админ отправил вам ответ по заявке",
-        reply_markup=keyboards.user_go_to_statements_keyboard,
+        text=f"Админ отправил вам ответ по заявке с темой:\n{statement.theme or '№' + str(statement.office_id)}",
+        reply_markup=keyboards.user_go_to_statements_keyboard(statement_id),
     )
     admin_id = int(message.from_user.id)
     await message.answer(
         text=texts.successfully_sent,
-        reply_markup=keyboards.go_to_admin_menu_keyboard(admin_id),
+        reply_markup=keyboards.admin_answer_statement(admin_id, statement_id),
     )
 
 
