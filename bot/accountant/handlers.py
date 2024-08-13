@@ -19,7 +19,7 @@ import bot.accountant.texts as texts
 import bot.accountant.utils as utils
 
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = Router()
 
@@ -45,15 +45,14 @@ async def send_pretty_statement(user_id, statement_id):
 
     messages = list(map(int, statement.messages.split()))
     office_id = statement.office_id
-
+    office = crud_offices.read_office(office_id)
     if office_id is None:
-        address = info[statement.task_type_id]
+        address = "Адрес требует уточнения"
     else:
-        address = (
-            f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
-        )
+        address = f'{office.address}, офис №{office.office_number}'
 
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\n"
+    user = crud_users.read_user(statement.user_id)
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
     multi = list()
     for message_id in messages:
         message = crud_messages.read_message(message_id)
@@ -288,7 +287,7 @@ async def accountant_hire_statement_(callback: CallbackQuery, state: FSMContext)
     await callback.answer()
     await callback.message.edit_reply_markup()
     crud_statements.change_status(statement_id, 2)
-    crud_statements.set_date_run(statement_id, datetime.now())
+    crud_statements.set_date_run(statement_id, datetime.now() + timedelta(hours=3))
 
     await callback.message.answer(
         text=texts.status_changed,
@@ -314,7 +313,7 @@ async def accountant_answer_statement_callback_(
     statement = crud_statements.get_statement_by_id(statement_id)
     if statement.status == 1:
         crud_statements.change_status(statement_id, 2)
-        crud_statements.set_date_run(statement_id, datetime.now())
+        crud_statements.set_date_run(statement_id, datetime.now() + timedelta(hours=3))
     await callback.answer()
     await callback.message.edit_reply_markup()
     await callback.message.answer(
@@ -360,7 +359,7 @@ async def answer_to_user(
     multimedia = data
     user_id = int(message.from_user.id)
     type_of_user = "accountant"
-    now = datetime.now()
+    now = datetime.now() + timedelta(hours=3)
     message_db = MessagesModel(
         user_id=user_id,
         type_of_user=type_of_user,

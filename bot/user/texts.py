@@ -2,9 +2,9 @@ def meter_readings(meter_type, unit):
     return f"Введите показания счетчика {str(meter_type)} в {str(unit)}"
 
 
-def check_reading(office_address, meter_type, readings, unit):
+def check_reading(office_address,office_number, meter_type, readings, unit):
     s = "Ваша заявка:\n"
-    s += f"{office_address}, {meter_type}\n{readings} {unit}\n"
+    s += f"{office_address}, {office_number}\nТип счетчика:{meter_type}\n{readings} {unit}\n"
     s += f"Отправить показания?"
     return s
 

@@ -1,5 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from typing import List
+
+import config
 from bot.db.schemas.statements import Statements
 import bot.db.crud.offices as crud_offices
 import bot.db.crud.superusers as crud_superusers
@@ -36,13 +38,13 @@ def superadmin_keyboard(statements: list[Statements], page):
                     text += f"{statement.theme}"
             else:
                 office_id = int(office_id)
-                address = crud_offices.get_office_address_by_id(office_id)
+                office = crud_offices.read_office(office_id)
                 if statement.status == 1:
-                    text = f"🔵{address}, "
+                    text = f"🔵{office.address}, "
                 else:
-                    text = f"{address}, "
+                    text = f"{office.address}, "
                 if statement.theme is None:
-                    text += f"№{office_id}"
+                    text += f"офис №{office.office_number}"
                 else:
                     text += f"{statement.theme}"
 
@@ -75,12 +77,15 @@ def superadmin_keyboard(statements: list[Statements], page):
     buttons.append(configuration_field)
 
     newsletter = InlineKeyboardButton(
-        text="Рассылка", callback_data="superadmin_newsletter"
+        text="Рассылка", callback_data="send_newsletter_to_user"
     )
-    archive = InlineKeyboardButton(text="Архив", url="https://t.me/+EwHO3avMGPZkNTNi")
+    archive = InlineKeyboardButton(text="Архив", url=config.archive_group_url)
     give_role = InlineKeyboardButton(text="...", callback_data="superadmin_give_role")
     low_menu = [newsletter, archive, give_role]
     buttons.append(low_menu)
+    buttons.append(
+        [InlineKeyboardButton(text="БД", callback_data="work_with_db")]
+    )
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
@@ -248,3 +253,15 @@ users_change_buttons = [
 ]
 
 users_change = InlineKeyboardMarkup(inline_keyboard=users_change_buttons)
+work_with_db_buttons = [
+    [
+        InlineKeyboardButton(text="Получить Базу", callback_data="superuser_get_db")
+    ],
+    [
+        InlineKeyboardButton(text="Обновить Базу", callback_data="superuser_update_db")
+    ],
+    [
+        InlineKeyboardButton(text="Назад", callback_data="superadmin")
+    ],
+]
+work_with_db_keyboard = InlineKeyboardMarkup(inline_keyboard=work_with_db_buttons)

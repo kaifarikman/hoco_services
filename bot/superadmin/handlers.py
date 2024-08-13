@@ -1,6 +1,12 @@
+import os
+
+from sqlalchemy import create_engine
+
+import bot.db.db as db
+
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InputFile, FSInputFile
 from aiogram.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
@@ -24,7 +30,7 @@ import bot.db.crud.superusers as crud_superusers
 import bot.db.crud.statements as crud_statements
 import bot.db.crud.messages as crud_messages
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from random import randint
 
 import bot.superadmin.texts as texts
@@ -46,17 +52,16 @@ async def send_to_archive(statement_id):
     statement = crud_statements.get_statement_by_id(statement_id)
     messages = list(map(int, statement.messages.split()))
     office_id = statement.office_id
-
+    office = crud_offices.read_office(office_id)
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = (
-            f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
-        )
+        address = f'{office.address}, офис №{office.office_number}'
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}. Тип заявки: {info[statement.task_type_id]}\nот {user.name}\n+{user.phone}\n"
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
     multi = list()
+
     for message_id in messages:
         message = crud_messages.read_message(message_id)
         user_type = "Пользователь"
@@ -228,28 +233,28 @@ async def superadmin_complete_callback(callback: CallbackQuery):
 
     statement_id = int(callback.data.split("_")[-1])
     crud_statements.change_status(statement_id, 3)
-    crud_statements.set_date_finish(statement_id, datetime.now())
+    crud_statements.set_date_finish(statement_id, datetime.now() + timedelta(hours=3))
     await send_to_archive(statement_id)
     await callback.message.answer(
         text=texts.sent_to_achieve, reply_markup=keyboards.superadmin_menu_keyboard
     )
 
 
-@router.callback_query(F.data == "superadmin_newsletter")
-async def superadmin_newsletter_callback(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    await callback.message.edit_reply_markup()
-    await state.clear()
-
-    users = crud_users.get_all_users()
-    newsletters = utils.get_newsletters(users)
-
-    page = 1 if len(newsletters) != 0 else 0
-
-    await callback.message.answer(
-        text=texts.choice_newsletter_text,
-        reply_markup=keyboards.newsletter_choice(newsletters, page),
-    )
+# @router.callback_query(F.data == "superadmin_newsletter")
+# async def superadmin_newsletter_callback(callback: CallbackQuery, state: FSMContext):
+#     await callback.answer()
+#     await callback.message.edit_reply_markup()
+#     await state.clear()
+#
+#     users = crud_users.get_all_users()
+#     newsletters = utils.get_newsletters(users)
+#
+#     page = 1 if len(newsletters) != 0 else 0
+#
+#     await callback.message.answer(
+#         text=texts.choice_newsletter_text,
+#         reply_markup=keyboards.newsletter_choice(newsletters, page),
+#     )
 
 
 @router.callback_query(F.data == "superadmin_give_role")
@@ -268,8 +273,10 @@ async def superadmin_give_role_callback(callback: CallbackQuery, state: FSMConte
 @router.callback_query(F.data == "give_role_for_superusers")
 async def give_role_for_superusers_callback(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_reply_markup()
-
+    try:
+        await callback.message.edit_reply_markup()
+    except:
+        ...
     superusers = crud_superusers.get_superusers()
     await callback.message.answer(
         text=texts.select_an_employee_for_settings,
@@ -618,5 +625,76 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
     )
 
 
+@router.callback_query(F.data == "work_with_db")
+async def work_with_db_callback(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    await state.clear()
+
+    await callback.message.answer(
+        text=texts.work_with_db_text,
+        reply_markup=keyboards.work_with_db_keyboard
+    )
+
+
+@router.callback_query(F.data == "superuser_get_db")
+async def superuser_get_db(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_reply_markup()
+    file = FSInputFile("bot/db/db.db")
+    await callback.message.answer_document(document=file, reply_markup=keyboards.superadmin_menu_keyboard)
+    # await callback.message.answer_document(
+    #     InputFile("bot/db/db.db")
+    # )
+
+
+class UpdateDBStates(StatesGroup):
+    waiting_for_db_file = State()
+
+
+# Обработчик нажатия на кнопку "superuser_update_db"
+@router.callback_query(F.data == "superuser_update_db")
+async def prompt_for_db_update(callback_query: CallbackQuery, state: FSMContext):
+    await callback_query.answer()
+    await callback_query.message.edit_reply_markup()
+    await callback_query.message.answer("Пожалуйста, отправьте новый файл базы данных (.db).")
+    await state.set_state(UpdateDBStates.waiting_for_db_file)
+
+
+# Обработчик, который будет принимать новую базу данных
+@router.message(UpdateDBStates.waiting_for_db_file)
+async def update_db(message: Message, state: FSMContext):
+    if not message.document:
+        return await message.answer(
+            text="Отправьте документ",
+            reply_markup=keyboards.superadmin_menu_keyboard
+        )
+    document = message.document
+    if not document.file_name.endswith(".db"):
+        return await message.answer("Это не файл базы данных. Пожалуйста, отправьте файл с расширением .db.")
+    try:
+        await message.edit_reply_markup()
+    except Exception:
+        print(Exception)
+    file_id = document.file_id
+
+    # Получаем информацию о файле
+    file = await bot.get_file(file_id)
+    file_path = file.file_path
+
+    # Скачиваем файл
+    await bot.download_file(file_path, "bot/db/db.db")
+
+    # Закрываем текущее соединение с БД
+    db.engine.dispose()
+
+    # Обновляем путь к новой БД и пересоздаем движок engine
+    new_db_url = f"sqlite:///{file_path}"
+    config.DB_CONNECTION_URL = new_db_url  # Обновляем URL соединения в config
+    db.engine = create_engine(new_db_url, echo=True, pool_size=20)
+    db.Base.metadata.bind = db.engine  # Перепривязываем metadata к новому движку
+    await message.answer(text="База данных успешно обновлена!", reply_markup=keyboards.superadmin_menu_keyboard)
+    await state.clear()  # Сброс состояния
+
+
 """конец Функционала ..."""
-# заявка завершена? ответ

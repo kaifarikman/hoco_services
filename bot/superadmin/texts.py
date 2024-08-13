@@ -32,3 +32,4 @@ sent_superuser_role = "Выберите роль для пользователя
 add_new_user_office_address_text = "Введите адрес офиса пользователя."
 add_new_user_office_office_number_text = "Введите номер офиса пользователя."
 add_new_user_office_meters_text = "Введите счетчики через пробел. 1 - Электричество, 2 - Вода"
+work_with_db_text = "Работа с Базой"

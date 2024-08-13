@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 
 def sort_by_date(statements: list[Statements]):
-    now = datetime.now()
+    now = datetime.now() + timedelta(hours=3)
     new_statements = []
     for statement in statements:
         if statement.date_finish is None:

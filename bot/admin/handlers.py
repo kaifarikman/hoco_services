@@ -19,7 +19,7 @@ import bot.admin.texts as texts
 import bot.admin.utils as utils
 
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def create_user_message_function(message, album=None):
@@ -64,17 +64,16 @@ async def send_pretty_statement(user_id, statement_id):
     superuser_type = crud_superusers.get_superuser_role(user_id)
     messages = list(map(int, statement.messages.split()))
     office_id = statement.office_id
-
+    office = crud_offices.read_office(office_id)
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = (
-            f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
-        )
+        address = f'{office.address}, офис №{office.office_number}'
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\n"
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
     multi = list()
+
     for message_id in messages:
         message = crud_messages.read_message(message_id)
         user_type = "Пользователь"
@@ -279,7 +278,7 @@ async def start_statement_(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
     crud_statements.change_status(statement_id, 2)
-    crud_statements.set_date_run(statement_id, datetime.now())
+    crud_statements.set_date_run(statement_id, datetime.now()+timedelta(hours=3))
 
     await callback.message.answer(
         text=texts.status_changed,
@@ -303,7 +302,7 @@ async def answer_statement_callback(callback: CallbackQuery, state: FSMContext):
     statement = crud_statements.get_statement_by_id(statement_id)
     if statement.status == 1:
         crud_statements.change_status(statement_id, 2)
-        crud_statements.set_date_run(statement_id, datetime.now())
+        crud_statements.set_date_run(statement_id, datetime.now()+timedelta(hours=3))
     await callback.answer()
     await callback.message.edit_reply_markup()
     await callback.message.answer(
@@ -340,7 +339,7 @@ async def answer_to_user(
     multimedia = data
     user_id = int(message.from_user.id)
     type_of_user = "admin"
-    now = datetime.now()
+    now = datetime.now()+timedelta(hours=3)
     message_db = MessagesModel(
         user_id=user_id,
         type_of_user=type_of_user,
@@ -377,14 +376,15 @@ async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
 
     users = crud_users.get_all_users()
-    newsletters = utils.get_newsletters(users)
+    addresses = utils.get_addresses(users)
+
     user_id = int(callback.from_user.id)
 
-    page = 1 if len(newsletters) != 0 else 0
+    page = 1 if len(addresses) != 0 else 0
 
     await callback.message.answer(
         text=texts.choice_newsletter_text,
-        reply_markup=keyboards.newsletter_choice(newsletters, page, user_id),
+        reply_markup=keyboards.newsletter_choice(addresses, page, user_id),
     )
 
 
@@ -396,10 +396,11 @@ async def change_data_(callback: CallbackQuery, state: FSMContext):
     page = int(data[-1])
 
     users = crud_users.get_all_users()
-    newsletters = utils.get_newsletters(users)
+    addresses = utils.get_addresses(users)
+
     user_id = int(callback.from_user.id)
     await callback.message.edit_reply_markup(
-        reply_markup=keyboards.newsletter_choice(newsletters, page, user_id)
+        reply_markup=keyboards.newsletter_choice(addresses, page, user_id)
     )
 
 
@@ -412,28 +413,37 @@ class Newsletter(StatesGroup):
 async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_reply_markup()
-    """send_newsletter_{office.id}_{user_id}"""
-    office_id, user_id = map(int, callback.data.split("_")[-2:])
-    address = crud_offices.get_office_address_by_id(office_id)
+    """send_newsletter_{ind}"""
+    ind = int(callback.data.split("_")[-1])
+    users = crud_users.get_all_users()
+    addresses = utils.get_addresses(users)
+    address = addresses[ind]
+    user_id = int(callback.from_user.id)
     await callback.message.answer(
         text=texts.input_newsletter_text(address),
         reply_markup=keyboards.go_to_admin_menu_keyboard(user_id),
     )
     await state.set_state(Newsletter.newsletter_text)
-    await state.update_data({"newsletter_id": [office_id, user_id]})
+    await state.update_data({"newsletter_id": address})
 
 
 @router.message(Newsletter.newsletter_text)
 async def newsletter_text_cmd(message: Message, state: FSMContext):
     data = await state.get_data()
-    newsletter_text = message.text
-    newsletter_id = data["newsletter_id"]
-    chat_id = newsletter_id[1]
+    address = data["newsletter_send_newsletter_id"]
+    text = message.text
+    users = crud_users.get_users_by_address(address)
+    user_ids = [user.user_id for user in users]
+    for user_id_ in set(user_ids):
+        try:
+            await bot.send_message(
+                chat_id=user_id_,
+                text=text
+            )
+        except Exception as e:
+            print('Error copying message')
+
     user_id = int(message.from_user.id)
-    await bot.send_message(
-        chat_id=chat_id,
-        text=newsletter_text,
-    )
     await message.answer(
         text=texts.newsletter_sent,
         reply_markup=keyboards.go_to_admin_menu_keyboard(user_id),

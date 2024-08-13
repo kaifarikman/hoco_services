@@ -20,10 +20,11 @@ def user_statements_keyboard(user_statements: list[Statements], page):
         try:
             statement = user_statements[ind]
             office_id = statement.office_id
+            office = crud_offices.read_office(office_id)
             if office_id is None:
                 address = "Адрес требует уточнения"
             else:
-                address = crud_offices.get_office_address_by_id(office_id)
+                address = office.address
 
             text = ""
             if statement.status == 3:
@@ -31,7 +32,7 @@ def user_statements_keyboard(user_statements: list[Statements], page):
             text += address + ", "
             if statement.theme is None:
                 if statement.task_type_id == 1:
-                    text += f"№{office_id}"
+                    text += f"№{office.office_number}"
                 else:
                     text += f"{info[statement.task_type_id]}"
             else:

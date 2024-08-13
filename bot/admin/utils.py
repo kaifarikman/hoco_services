@@ -1,5 +1,6 @@
 from datetime import datetime
 from bot.db.schemas.users import Users as UsersDB
+import bot.db.crud.offices as crud_offices
 
 
 def sort_statements(statements):
@@ -15,12 +16,14 @@ def convert_date(date: datetime):
     return date.strftime("%d.%m.%Y, %H:%M")
 
 
-def get_newsletters(users: list[UsersDB]):
-    newsletters = list()
+def get_addresses(users: list[UsersDB]):
+    addresses = list()
     for user in users:
         if user.was_deleted:
             continue
-        offices = user.offices.split()
+        offices = list(map(int, user.offices.split()))
         for office in offices:
-            newsletters.append([office, user.user_id])
-    return newsletters
+            address = crud_offices.get_office_address_by_id(int(office))
+            if address is not None and address not in addresses:
+                addresses.append(address)
+    return addresses

@@ -163,7 +163,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 .idea/
-data.txt
+bot/db/data.txt
 bot/db/db.db
 config.py
 /bot/db/default_db.py

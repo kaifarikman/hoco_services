@@ -34,6 +34,7 @@ async def main():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     logging.getLogger("sqlalchemy.engine.Engine").disabled = True
+    print("started!")
     try:
         asyncio.run(main())
     except Exception as exception:

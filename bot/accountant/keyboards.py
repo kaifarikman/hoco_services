@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import bot.db.crud.offices as crud_offices
 import bot.db.crud.superusers as crud_superusers
+import config
 
 
 def accountant_menu_keyboard(statements, page):
@@ -30,13 +31,13 @@ def accountant_menu_keyboard(statements, page):
                     text += f"{statement.theme}"
             else:
                 office_id = int(office_id)
-                address = crud_offices.get_office_address_by_id(office_id)
+                office = crud_offices.read_office(office_id)
                 if statement.status == 1:
-                    text = f"🔵{address}, "
+                    text = f"🔵{office.address}, "
                 else:
-                    text = f"{address}, "
+                    text = f"{office.address}, "
                 if statement.theme is None:
-                    text += f"офис №{office_id}"
+                    text += f"офис №{office.office_number}"
                 else:
                     text += f"{statement.theme}"
             callback_data = f"accountant_statement_{statement.id}"
@@ -69,7 +70,7 @@ def accountant_menu_keyboard(statements, page):
     newsletter = InlineKeyboardButton(
         text="Рассылка", callback_data="send_newsletter_to_user"
     )
-    archive = InlineKeyboardButton(text="Архив", url="https://t.me/+EwHO3avMGPZkNTNi")
+    archive = InlineKeyboardButton(text="Архив", url=config.archive_group_url)
     low_menu = [newsletter, archive]
     buttons.append(low_menu)
 
@@ -149,7 +150,12 @@ def go_to_accountant_menu_keyboard(user_id, statement_id):
         [
             InlineKeyboardButton(text="Продолжить ответ", callback_data=f"accountant_answer_statement_{statement_id}")
         ],
-        [InlineKeyboardButton(text="Выйти в меню бухгалтера", callback_data=menu)]
+        [
+            InlineKeyboardButton(text="Вернуться к заявке", callback_data=f"accountant_statement_{statement_id}")
+        ],
+        [
+            InlineKeyboardButton(text="Выйти в меню бухгалтера", callback_data=menu)
+        ]
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)

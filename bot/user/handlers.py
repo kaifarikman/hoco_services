@@ -23,7 +23,8 @@ import bot.db.crud.meters as crud_meters
 import bot.db.crud.superusers as crud_superusers
 
 from bot.bot import bot
-from datetime import datetime
+from datetime import datetime, timedelta
+
 
 """start help functions"""
 
@@ -79,22 +80,20 @@ async def send_pretty_statement(user_id, statement_id):
 
     if statement.messages is None:
         address = info[statement.task_type_id]
-        answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}"
+        answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
         return await bot.send_message(
             chat_id=user_id, text=answer, reply_markup=keyboard
         )
     messages = list(map(int, statement.messages.split()))
     office_id = statement.office_id
-
+    office = crud_offices.read_office(office_id)
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = (
-            f"{crud_offices.get_office_address_by_id(office_id)}, офис №{office_id}"
-        )
+        address = f'{office.address}, офис №{office.office_number}'
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\n"
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
     multi = list()
     for message_id in messages:
         message = crud_messages.read_message(message_id)
@@ -379,7 +378,7 @@ async def my_statement_sent(
         user_id=user_id,
         type_of_user=type_of_user,
         multimedia=multimedia,
-        date=datetime.now(),
+        date=datetime.now()+timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message_db)
 
@@ -456,8 +455,11 @@ async def new_statement_description(
     type_of_user = "user"
     multimedia = data
 
-    office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
-    if len(office_id.split(" ")) != 1:
+    try:
+        office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
+    except:
+        office_id = None
+    if office_id is None or len(office_id.split(" ")) != 1:
         office_id = None
     else:
         office_id = int(office_id)
@@ -466,7 +468,7 @@ async def new_statement_description(
         user_id=user_id,
         type_of_user=type_of_user,
         multimedia=multimedia,
-        date=datetime.now(),
+        date=datetime.now()+timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message_db)
 
@@ -475,7 +477,7 @@ async def new_statement_description(
         admin_id=None,
         task_type_id=1,
         messages=f"{message_id}",
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -629,11 +631,12 @@ async def low_meter_readings(message: Message, state: FSMContext):
     office_id, meter_id = map(int, data["data"])
     readings = message.text
     office_address = crud_offices.get_office_address_by_id(office_id)
+    office_number = crud_offices.get_office_number_by_id(office_id)
     meter_type, unit = crud_meters.get_meter(meter_id)
 
     await state.update_data({"readings": readings})
     await message.answer(
-        text=texts.check_reading(office_address, meter_type, readings, unit),
+        text=texts.check_reading(office_address, office_number, meter_type, readings, unit),
         reply_markup=keyboards.go_to_send_statement_keyboard_high,
     )
     await state.set_state(HighMeterReadings.last)
@@ -649,9 +652,12 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         text=texts.meter_readings_sent_text, reply_markup=keyboards.back_keyboard
     )
     user_id = int(callback.from_user.id)
-    multimedia = f"text[]None[]{data['readings']}"
+
+    office_id, meter_id = map(int, data["data"])
+    meter_type, unit = crud_meters.get_meter(meter_id)
+    multimedia = f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
     message = MessagesModel(
-        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()
+        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()+timedelta(hours=3)
     )
     message_id = crud_messages.create_message(message)
     statement = StatementsModel(
@@ -659,12 +665,12 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=2,
         messages=f"{message_id}",
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
         status=1,
-        office_id=int(data["data"][0]),
+        office_id=office_id,
     )
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
@@ -709,10 +715,11 @@ async def low_meter_readings(message: Message, state: FSMContext):
     office_id, meter_id = map(int, data["data"])
     readings = message.text
     office_address = crud_offices.get_office_address_by_id(office_id)
+    office_number = crud_offices.get_office_number_by_id(office_id)
     meter_type, unit = crud_meters.get_meter(meter_id)
     await state.update_data({"readings": readings})
     await message.answer(
-        text=texts.check_reading(office_address, meter_type, readings, unit),
+        text=texts.check_reading(office_address, office_number, meter_type, readings, unit),
         reply_markup=keyboards.go_to_send_statement_keyboard_middle,
     )
     await state.set_state(MiddleMeterReadings.last)
@@ -728,9 +735,11 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         text=texts.meter_readings_sent_text, reply_markup=keyboards.back_keyboard
     )
     user_id = int(callback.from_user.id)
-    multimedia = f"text[]None[]{data['readings']}"
+    office_id, meter_id = map(int, data["data"])
+    meter_type, unit = crud_meters.get_meter(meter_id)
+    multimedia = f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
     message = MessagesModel(
-        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()
+        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()+timedelta(hours=3)
     )
     message_id = crud_messages.create_message(message)
     statement = StatementsModel(
@@ -738,7 +747,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=2,
         messages=f"{message_id}",
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -779,10 +788,11 @@ async def low_meter_readings(message: Message, state: FSMContext):
     office_id, meter_id = map(int, data["data"])
     readings = message.text
     office_address = crud_offices.get_office_address_by_id(office_id)
+    office_number = crud_offices.get_office_number_by_id(office_id)
     meter_type, unit = crud_meters.get_meter(meter_id)
     await state.update_data({"readings": readings})
     await message.answer(
-        text=texts.check_reading(office_address, meter_type, readings, unit),
+        text=texts.check_reading(office_address, office_number, meter_type, readings, unit),
         reply_markup=keyboards.go_to_send_statement_keyboard,
     )
     await state.set_state(LowMeterReadings.last)
@@ -798,9 +808,11 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         text=texts.meter_readings_sent_text, reply_markup=keyboards.back_keyboard
     )
     user_id = int(callback.from_user.id)
-    multimedia = f"text[]None[]{data['readings']}"
+    office_id, meter_id = map(int, data["data"])
+    meter_type, unit = crud_meters.get_meter(meter_id)
+    multimedia = f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
     message = MessagesModel(
-        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()
+        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()+timedelta(hours=3)
     )
     message_id = crud_messages.create_message(message)
     statement = StatementsModel(
@@ -808,7 +820,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=2,
         messages=f"{message_id}",
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -891,8 +903,11 @@ async def request_for_other_documentation_request(
     type_of_user = "user"
     multimedia = data
 
-    office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
-    if len(office_id.split(" ")) != 1:
+    try:
+        office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
+    except:
+        office_id = None
+    if office_id is None or len(office_id.split(" ")) != 1:
         office_id = None
     else:
         office_id = int(office_id)
@@ -901,7 +916,7 @@ async def request_for_other_documentation_request(
         user_id=user_id,
         type_of_user=type_of_user,
         multimedia=multimedia,
-        date=datetime.now(),
+        date=datetime.now()+timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message_db)
 
@@ -910,7 +925,7 @@ async def request_for_other_documentation_request(
         admin_id=None,
         task_type_id=3,
         messages=f"{message_id}",
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -937,8 +952,11 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     await state.clear()
     user_id = int(callback.from_user.id)
-    office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
-    if len(office_id.split(" ")) != 1:
+    try:
+        office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
+    except:
+        office_id = None
+    if office_id is None or len(office_id.split(" ")) != 1:
         office_id = None
     else:
         office_id = int(office_id)
@@ -947,7 +965,7 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=4,
         messages=None,
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -977,8 +995,11 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     await state.clear()
     user_id = int(callback.from_user.id)
-    office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
-    if len(office_id.split(" ")) != 1:
+    try:
+        office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
+    except:
+        office_id = None
+    if office_id is None or len(office_id.split(" ")) != 1:
         office_id = None
     else:
         office_id = int(office_id)
@@ -987,7 +1008,7 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=5,
         messages=None,
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -1020,8 +1041,11 @@ async def request_for_reconciliation_report_callback(
     await callback.message.edit_reply_markup()
     await state.clear()
     user_id = int(callback.from_user.id)
-    office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
-    if len(office_id.split(" ")) != 1:
+    try:
+        office_id = crud_users.get_user_offices(user_id).lstrip().rstrip()
+    except:
+        office_id = None
+    if office_id is None or len(office_id.split(" ")) != 1:
         office_id = None
     else:
         office_id = int(office_id)
@@ -1030,7 +1054,7 @@ async def request_for_reconciliation_report_callback(
         admin_id=None,
         task_type_id=6,
         messages=None,
-        date_creation=datetime.now(),
+        date_creation=datetime.now()+timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,

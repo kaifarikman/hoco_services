@@ -1,4 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+import config
 from bot.db.schemas.statements import Statements
 import bot.db.crud.offices as crud_offices
 import bot.db.crud.superusers as crud_superusers
@@ -28,8 +30,11 @@ def admin_answer_statement(user_id, statement_id):
             InlineKeyboardButton(text="Продолжить ответ", callback_data=f"answer_statement_{statement_id}")
         ],
         [
+            InlineKeyboardButton(text="Вернуться к заявке", callback_data=f"admin_statement_{statement_id}")
+        ],
+        [
             InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)
-        ]
+        ],
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -55,13 +60,13 @@ def admin_menu_keyboard(statements: list[Statements], page):
                     text += f"{statement.theme}"
             else:
                 office_id = int(office_id)
-                address = crud_offices.get_office_address_by_id(office_id)
+                office = crud_offices.read_office(office_id)
                 if statement.status == 1:
-                    text = f"🔵{address}, "
+                    text = f"🔵{office.address}, "
                 else:
-                    text = f"{address}, "
+                    text = f"{office.address}, "
                 if statement.theme is None:
-                    text += f"офис №{office_id}"
+                    text += f"офис №{office.office_number}"
                 else:
                     text += f"{statement.theme}"
             callback_data = f"admin_statement_{statement.id}"
@@ -94,7 +99,7 @@ def admin_menu_keyboard(statements: list[Statements], page):
     newsletter = InlineKeyboardButton(
         text="Рассылка", callback_data="send_newsletter_to_user"
     )
-    archive = InlineKeyboardButton(text="Архив", url="https://t.me/+EwHO3avMGPZkNTNi")
+    archive = InlineKeyboardButton(text="Архив", url=config.archive_group_url)
     low_menu = [newsletter, archive]
     buttons.append(low_menu)
 
@@ -145,16 +150,15 @@ def statement_keyboard(statement_id, superuser_type):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def newsletter_choice(newsletters, page, user_id):
+def newsletter_choice(addresses, page, user_id):
     buttons = []
     static_count = 30
     ind = (page - 1) * static_count
     for _ in range(static_count):
         try:
-            office_id, user_user_id = newsletters[ind]
-            office = crud_offices.read_office(office_id)
-            text = f"{office.address}, №{office.office_number}"
-            callback_data = f"send_newsletter_{office.id}_{user_user_id}"
+            address = addresses[ind]
+            text = f"{address}"
+            callback_data = f"send_newsletter_{ind}"
             buttons.append(
                 [InlineKeyboardButton(text=text, callback_data=callback_data)]
             )
@@ -163,8 +167,8 @@ def newsletter_choice(newsletters, page, user_id):
             """рализация indexError , для static_count кнопок без мучений и ифов"""
             ...
         ind += 1
-    pages_count = len(newsletters) // static_count
-    if len(newsletters) % static_count != 0:
+    pages_count = len(addresses) // static_count
+    if len(addresses) % static_count != 0:
         pages_count += 1
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1
