@@ -13,7 +13,7 @@ def really_delete_person(superuser):
 
 no_access = "У вас нет доступа"
 hello_superadmin = "Вы - суперадмин."
-seriously_complete = "Вы точно хотите завершить заявку?"
+seriously_complete = "Вы действительно хотите завершить заявку?"
 no_complete = "Статус заявки остался неизменным. Вы можете выйти в главное меню"
 sent_to_achieve = "Заявка отправлена в архив"
 choice_newsletter_text = "Выберите адрес для рассылки"

@@ -4,7 +4,7 @@ def meter_readings(meter_type, unit):
 
 def check_reading(office_address,office_number, meter_type, readings, unit):
     s = "Ваша заявка:\n"
-    s += f"{office_address}, {office_number}\nТип счетчика:{meter_type}\n{readings} {unit}\n"
+    s += f"{office_address}, офис {office_number}\nТип счетчика: {meter_type}\n{readings} {unit}\n"
     s += f"Отправить показания?"
     return s
 
@@ -37,7 +37,7 @@ meter_readings_sent_text = "Показания счетчиков отправл
 no_meter_readings_sent_text = "Вы отменили отправку показаний счетчиков"
 select_counter_text = "Выберите тип счетчика"
 request_for_other_documentation_text = "Введите необходимую документацию для запроса"
-documentation_sent = "Документация отправлена на обработку"
+documentation_sent = "Ваш запрос на прочую документацию успешно отправлен"
 ku_text = (
     """Ваша заявка начисление КУ принята, ожидайте ответ в разделе "Мои заявки" """
 )

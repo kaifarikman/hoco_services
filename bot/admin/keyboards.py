@@ -99,7 +99,7 @@ def admin_menu_keyboard(statements: list[Statements], page):
     newsletter = InlineKeyboardButton(
         text="Рассылка", callback_data="send_newsletter_to_user"
     )
-    archive = InlineKeyboardButton(text="Архив", url=config.archive_group_url)
+    archive = InlineKeyboardButton(text="Архив", url="https://t.me/+lRgj4g8s5NJlN2Vi")
     low_menu = [newsletter, archive]
     buttons.append(low_menu)
 

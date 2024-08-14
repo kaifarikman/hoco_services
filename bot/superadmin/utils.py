@@ -10,7 +10,11 @@ def sort_statements(statements):
     return new_statements
 
 
-def convert_date(date):
+def convert_date_(date):
+    return date.strftime("%d.%m.%Y %H:%M")
+
+
+def convert_date(date: datetime):
     return date.strftime("%d.%m.%Y, %H:%M")
 
 

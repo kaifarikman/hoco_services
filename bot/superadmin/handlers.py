@@ -50,7 +50,8 @@ async def send_to_archive(statement_id):
     }
     user_id = config.archive_group
     statement = crud_statements.get_statement_by_id(statement_id)
-    messages = list(map(int, statement.messages.split()))
+    user = crud_users.read_user(statement.user_id)
+
     office_id = statement.office_id
     office = crud_offices.read_office(office_id)
     if office_id is None:
@@ -58,8 +59,17 @@ async def send_to_archive(statement_id):
     else:
         address = f'{office.address}, офис №{office.office_number}'
 
-    user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
+    if statement.messages is None:
+        answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
+        answer += f"Тип заявки: {info[statement.task_type_id]}\n"
+        answer += f"{utils.convert_date_(statement.date_creation)} - {utils.convert_date_(statement.date_finish)}"
+        return await bot.send_message(
+            chat_id=user_id,
+            text=answer,
+        )
+    messages = list(map(int, statement.messages.split()))
+
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
     multi = list()
 
     for message_id in messages:
@@ -83,13 +93,13 @@ async def send_to_archive(statement_id):
             elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
             else:
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
 
-        line = f"{user_type}, {date}:\n{text}\n"
+        line = f"{user_type}, {date}\n{text}\n"
         answer += line
 
     if len(multi) == 0:

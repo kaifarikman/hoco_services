@@ -8,6 +8,7 @@ import bot.db.crud.statements as crud_statements
 
 def user_statements_keyboard(user_statements: list[Statements], page):
     buttons = []
+    static_count = 30
     ind = (page - 1) * 30
     info = {
         2: "Подача показаний счетчиков",
@@ -16,17 +17,18 @@ def user_statements_keyboard(user_statements: list[Statements], page):
         5: "Начисление аренды",
         6: "Запрос акта сверки",
     }
-    for _ in range(30):
+    for _ in range(static_count):
         try:
             statement = user_statements[ind]
             office_id = statement.office_id
             office = crud_offices.read_office(office_id)
+
             if office_id is None:
                 address = "Адрес требует уточнения"
             else:
                 address = office.address
 
-            text = ""
+            text = f"№{statement.id}, "
             if statement.status == 3:
                 text += "✅"
             text += address + ", "
@@ -41,13 +43,13 @@ def user_statements_keyboard(user_statements: list[Statements], page):
             button = [InlineKeyboardButton(text=text, callback_data=callback_data)]
             buttons.append(button)
         except Exception as e:
-            """рализация indexError , для 8 кнопок без мучений и ифов"""
+            """рализация indexError , для static_count кнопок без мучений и ифов"""
             ...
         ind += 1
     pages_count = (
-        len(user_statements) // 8 + 1
-        if len(user_statements) % 8 != 0
-        else len(user_statements) // 8
+        len(user_statements) // static_count + 1
+        if len(user_statements) % static_count != 0
+        else len(user_statements) // static_count
     )
     left_page = page - 1 if page != 1 else pages_count
     right_page = page + 1 if page != pages_count else 1

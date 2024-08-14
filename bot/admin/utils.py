@@ -26,4 +26,6 @@ def get_addresses(users: list[UsersDB]):
             address = crud_offices.get_office_address_by_id(int(office))
             if address is not None and address not in addresses:
                 addresses.append(address)
+    addresses = set(addresses)
+    addresses = sorted(list(addresses))
     return addresses

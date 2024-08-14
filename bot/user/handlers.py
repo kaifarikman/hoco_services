@@ -80,7 +80,7 @@ async def send_pretty_statement(user_id, statement_id):
 
     if statement.messages is None:
         address = info[statement.task_type_id]
-        answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
+        answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
         return await bot.send_message(
             chat_id=user_id, text=answer, reply_markup=keyboard
         )
@@ -93,13 +93,15 @@ async def send_pretty_statement(user_id, statement_id):
         address = f'{office.address}, офис №{office.office_number}'
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
     multi = list()
     for message_id in messages:
         message = crud_messages.read_message(message_id)
         user_type = "Пользователь"
         if message.type_of_user == "admin":
             user_type = "Админ"
+        if message.type_of_user == "accountant":
+            user_type = "Бухгалтер"
         date = utils.convert_date(message.date)
         text = ""
         multimedia = message.multimedia.split("{{}}")
@@ -113,13 +115,13 @@ async def send_pretty_statement(user_id, statement_id):
             elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
             else:
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
 
-        line = f"{user_type}, {date}:\n{text}\n"
+        line = f"{user_type}, {date}\n{text}\n"
         answer += line
 
     if len(multi) == 0:
@@ -400,7 +402,7 @@ async def my_statement_sent(
         admin_type = "accountant"
     for admin_id in superusers:
         await bot.send_message(
-            text=f"Пользователь ответил на заявку «{statement.theme or '№' + str(statement.office_id)}»\n",
+            text=f"Пользователь ответил на заявку №{statement_id}\n",
             reply_markup=keyboards.go_to_statement_by_statement_id(admin_type, statement_id),
             chat_id=admin_id,
         )
@@ -1075,7 +1077,7 @@ async def request_for_reconciliation_report_callback(
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь оставил запрос акта и сверки.", chat_id=accountant_id,
+            text="Пользователь оставил запрос Акта сверки.", chat_id=accountant_id,
             reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
         )
 

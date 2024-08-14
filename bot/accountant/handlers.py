@@ -52,7 +52,7 @@ async def send_pretty_statement(user_id, statement_id):
         address = f'{office.address}, офис №{office.office_number}'
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
     multi = list()
     for message_id in messages:
         message = crud_messages.read_message(message_id)
@@ -76,13 +76,13 @@ async def send_pretty_statement(user_id, statement_id):
             elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
             else:
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
 
-        line = f"{user_type}, {date}:\n{text}\n"
+        line = f"{user_type}, {date}\n{text}\n"
         answer += line
 
     if len(multi) == 0:
@@ -377,7 +377,8 @@ async def answer_to_user(
 
     await bot.send_message(
         chat_id=user_id,
-        text=f"Бухгалтер отправил вам ответ на заявку:\n{info[statement.task_type_id]}",
+        #text=f"Бухгалтер отправил вам ответ на заявку:\n{info[statement.task_type_id]}",
+        text=f"Бухгалтер отправил вам ответ на заявку №{statement_id}",
         reply_markup=keyboards.user_go_to_statements_keyboard(statement_id),
     )
     accountant_id = int(message.from_user.id)

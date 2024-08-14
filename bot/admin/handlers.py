@@ -62,7 +62,10 @@ def create_user_message_function(message, album=None):
 async def send_pretty_statement(user_id, statement_id):
     statement = crud_statements.get_statement_by_id(statement_id)
     superuser_type = crud_superusers.get_superuser_role(user_id)
-    messages = list(map(int, statement.messages.split()))
+    if len(statement.messages) == 1:
+        messages = [statement.messages]
+    else:
+        messages = list(map(int, statement.messages.split()))
     office_id = statement.office_id
     office = crud_offices.read_office(office_id)
     if office_id is None:
@@ -71,7 +74,7 @@ async def send_pretty_statement(user_id, statement_id):
         address = f'{office.address}, офис №{office.office_number}'
 
     user = crud_users.read_user(statement.user_id)
-    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема:{statement.theme or 'отсутствует'}\n"
+    answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
     multi = list()
 
     for message_id in messages:
@@ -95,13 +98,13 @@ async def send_pretty_statement(user_id, statement_id):
             elif multy_type != "text" and caption == "None":
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
             else:
                 multi.append([multy_type, file_id])
                 if not text:
-                    text = "Текст не написан"
+                    text = "-"
 
-        line = f"{user_type}, {date}:\n{text}\n"
+        line = f"{user_type}, {date}\n{text}\n"
         answer += line
 
     keyboard = keyboards.statement_keyboard(statement_id, superuser_type)
@@ -357,7 +360,7 @@ async def answer_to_user(
 
     await bot.send_message(
         chat_id=user_id,
-        text=f"Админ отправил вам ответ по заявке с темой:\n{statement.theme or '№' + str(statement.office_id)}",
+        text=f"Админ отправил вам ответ по заявке №{statement_id}",
         reply_markup=keyboards.user_go_to_statements_keyboard(statement_id),
     )
     admin_id = int(message.from_user.id)
@@ -430,7 +433,7 @@ async def send_newsletter_(callback: CallbackQuery, state: FSMContext):
 @router.message(Newsletter.newsletter_text)
 async def newsletter_text_cmd(message: Message, state: FSMContext):
     data = await state.get_data()
-    address = data["newsletter_send_newsletter_id"]
+    address = data["newsletter_id"]
     text = message.text
     users = crud_users.get_users_by_address(address)
     user_ids = [user.user_id for user in users]
