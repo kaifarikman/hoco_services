@@ -23,19 +23,43 @@ def go_to_admin_menu_keyboard(user_id):
 
 def admin_answer_statement(user_id, statement_id):
     menu = "admin"
-    if crud_superusers.get_superuser_role(user_id) == 1:
-        menu = "superadmin"
     buttons = [
         [
-            InlineKeyboardButton(text="Продолжить ответ", callback_data=f"answer_statement_{statement_id}")
+            InlineKeyboardButton(
+                text="Продолжить ответ",
+                callback_data=f"answer_statement_{statement_id}",
+            )
         ],
         [
-            InlineKeyboardButton(text="Вернуться к заявке", callback_data=f"admin_statement_{statement_id}")
+            InlineKeyboardButton(
+                text="Вернуться к заявке",
+                callback_data=f"admin_statement_{statement_id}",
+            )
         ],
-        [
-            InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)
-        ],
+        [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)],
     ]
+    if crud_superusers.get_superuser_role(user_id) == 1:
+        menu = "superadmin"
+        buttons = [
+            [
+                InlineKeyboardButton(
+                    text="Продолжить ответ",
+                    callback_data=f"answer_statement_{statement_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Вернуться к заявке",
+                    callback_data=f"admin_statement_{statement_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Завершить", callback_data=f"complete_superadmin_{statement_id}"
+                ),
+            ],
+            [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)],
+        ]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -99,8 +123,7 @@ def admin_menu_keyboard(statements: list[Statements], page):
     newsletter = InlineKeyboardButton(
         text="Рассылка", callback_data="send_newsletter_to_user"
     )
-    archive = InlineKeyboardButton(text="Архив", url="https://t.me/+lRgj4g8s5NJlN2Vi")
-    low_menu = [newsletter, archive]
+    low_menu = [newsletter]
     buttons.append(low_menu)
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -208,7 +231,12 @@ def go_to_statement_menu(user_id, statement_id):
 
 def user_go_to_statements_keyboard(statement_id):
     buttons = [
-        [InlineKeyboardButton(text="Перейти в заявку", callback_data=f"my_user_statements_{statement_id}")],
-        [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")]
+        [
+            InlineKeyboardButton(
+                text="Перейти в заявку",
+                callback_data=f"my_user_statements_{statement_id}",
+            )
+        ],
+        [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)

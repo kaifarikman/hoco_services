@@ -2,7 +2,7 @@ def meter_readings(meter_type, unit):
     return f"Введите показания счетчика {str(meter_type)} в {str(unit)}"
 
 
-def check_reading(office_address,office_number, meter_type, readings, unit):
+def check_reading(office_address, office_number, meter_type, readings, unit):
     s = "Ваша заявка:\n"
     s += f"{office_address}, офис {office_number}\nТип счетчика: {meter_type}\n{readings} {unit}\n"
     s += f"Отправить показания?"
@@ -17,7 +17,7 @@ start_true_text = "Главное меню пользователя"
 start_false_text = "У вас нет доступа"
 send_inn = "Введите ИНН"
 send_number = "Введите номер телефона"
-no_access = "Вас нет в Базе Данных. Для продолжения пользования ботом нажмите /start"
+no_access = "Вас нет в Базе Данных. Для продолжения пользования ботом обратитесь к арендодателю и нажмите /start"
 yes_access = (
     "Вы успешно зарегистрированы. Нажмите на /start для дальнейшего пользования ботом"
 )
@@ -37,14 +37,14 @@ meter_readings_sent_text = "Показания счетчиков отправл
 no_meter_readings_sent_text = "Вы отменили отправку показаний счетчиков"
 select_counter_text = "Выберите тип счетчика"
 request_for_other_documentation_text = "Введите необходимую документацию для запроса"
-documentation_sent = "Ваш запрос на прочую документацию успешно отправлен"
+documentation_sent = """Ваша заявка на "Запрос прочей документации" принята, ожидайте ответ в разделе "Мои заявки" """
 ku_text = (
-    """Ваша заявка начисление КУ принята, ожидайте ответ в разделе "Мои заявки" """
+    """Ваша заявка "Начисление КУ" принята, ожидайте ответ в разделе "Мои заявки" """
 )
 rent_accuracy_text = (
-    """Ваша заявка начисление Аренды принята, ожидайте ответ в разделе "Мои заявки" """
+    """Ваша заявка "Начисление аренды" принята, ожидайте ответ в разделе "Мои заявки" """
 )
-request_for_reconciliation_report_text = """Ваша заявка запроса Акта сверки принята, ожидайте ответ в разделе "Мои заявки" """
+request_for_reconciliation_report_text = """Ваша заявка "Запрос акта сверки" принята, ожидайте ответ в разделе "Мои заявки" """
 my_statement_answer = "Введите ваш ответ на заявку №{number}"
 successfully_sent = "Ваш ответ успешно отправлен"
 statement_status_completed = "Заявка уже завершена. На нее невозможно ответить"

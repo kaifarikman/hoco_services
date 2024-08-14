@@ -49,7 +49,7 @@ async def send_pretty_statement(user_id, statement_id):
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = f'{office.address}, офис №{office.office_number}'
+        address = f"{office.address}, офис №{office.office_number}"
 
     user = crud_users.read_user(statement.user_id)
     answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
@@ -127,15 +127,10 @@ async def send_pretty_statement(user_id, statement_id):
 def create_user_message_function(message, album=None):
     lst = []
     if album is None:
-        if message.photo:
-            media_id = message.photo[-1].file_id
+        if message.document:
+            document_id = message.document.file_id
             caption = message.caption
-            s = f"photo[]{media_id}[]{caption}"
-            lst.append(s)
-        elif message.video:
-            media_id = message.video.file_id
-            caption = message.caption
-            s = f"video[]{media_id}[]{caption}"
+            s = f"document[]{document_id}[]{caption}"
             lst.append(s)
         elif message.text:
             s = f"text[]None[]{message.text}"
@@ -144,15 +139,10 @@ def create_user_message_function(message, album=None):
             return "no format"
     else:
         for element in album:
-            if element.photo:
-                media_id = element.photo[-1].file_id
-                caption = element.caption
-                s = f"photo[]{media_id}[]{caption}"
-                lst.append(s)
-            elif element.video:
-                media_id = element.video.file_id
-                caption = element.caption
-                s = f"video[]{media_id}[]{caption}"
+            if element.document:
+                document_id = element.document.file_id
+                caption = message.caption
+                s = f"document[]{document_id}[]{caption}"
                 lst.append(s)
             else:
                 return "no format"
@@ -246,7 +236,7 @@ class AccountantStatementTheme(StatesGroup):
 
 @router.callback_query(F.data.startswith("accountant_select_statement_theme_"))
 async def accountant_select_statement_theme_(
-        callback: CallbackQuery, state: FSMContext
+    callback: CallbackQuery, state: FSMContext
 ):
     await callback.answer()
     await callback.message.edit_reply_markup()
@@ -306,7 +296,7 @@ class AccountantAnswerStatement(StatesGroup):
 
 @router.callback_query(F.data.startswith("accountant_answer_statement_"))
 async def accountant_answer_statement_callback_(
-        callback: CallbackQuery, state: FSMContext
+    callback: CallbackQuery, state: FSMContext
 ):
     await state.clear()
     statement_id = int(callback.data.split("_")[-1])
@@ -325,7 +315,7 @@ async def accountant_answer_statement_callback_(
 
 @router.message(AccountantAnswerStatement.sent_answer)
 async def answer_to_user(
-        message: Message, state: FSMContext, album: List[Message] = None
+    message: Message, state: FSMContext, album: List[Message] = None
 ):
     statement_id = int((await state.get_data())["statement_id"])
     user_id = int(message.from_user.id)
@@ -338,9 +328,9 @@ async def answer_to_user(
         5: "Начисление аренды",
         6: "Запрос акта сверки",
     }
-    if message.voice or message.document:
+    if message.voice or message.photo or message.video:
         return await message.answer(
-            text="Запрещено отправлять cообщения данного типа. Отправьте медиа или текстовый ответ",
+            text="Запрещено отправлять cообщения данного типа. Отправьте документ или текстовый ответ",
             reply_markup=keyboards.go_to_statement_menu(user_id, statement_id),
         )
     lst = create_user_message_function(message=message, album=album)
@@ -377,14 +367,16 @@ async def answer_to_user(
 
     await bot.send_message(
         chat_id=user_id,
-        #text=f"Бухгалтер отправил вам ответ на заявку:\n{info[statement.task_type_id]}",
+        # text=f"Бухгалтер отправил вам ответ на заявку:\n{info[statement.task_type_id]}",
         text=f"Бухгалтер отправил вам ответ на заявку №{statement_id}",
         reply_markup=keyboards.user_go_to_statements_keyboard(statement_id),
     )
     accountant_id = int(message.from_user.id)
     await message.answer(
         text=texts.successfully_sent,
-        reply_markup=keyboards.go_to_accountant_menu_keyboard(accountant_id, statement_id),
+        reply_markup=keyboards.go_to_accountant_menu_keyboard(
+            accountant_id, statement_id
+        ),
     )
 
 

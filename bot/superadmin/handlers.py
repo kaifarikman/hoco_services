@@ -57,7 +57,7 @@ async def send_to_archive(statement_id):
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = f'{office.address}, офис №{office.office_number}'
+        address = f"{office.address}, офис №{office.office_number}"
 
     if statement.messages is None:
         answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
@@ -219,10 +219,11 @@ async def complete_statement(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     await state.clear()
 
+    user_id = int(callback.from_user.id)
     statement_id = int(callback.data.split("_")[-1])
     await callback.message.answer(
         text=texts.seriously_complete,
-        reply_markup=keyboards.seriously_delete_keyboard(statement_id),
+        reply_markup=keyboards.seriously_delete_keyboard(statement_id, user_id),
     )
 
 
@@ -231,8 +232,10 @@ async def superadmin_no_complete(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_reply_markup()
 
+    user_id = int(callback.from_user.id)
     await callback.message.answer(
-        text=texts.no_complete, reply_markup=keyboards.superadmin_menu_keyboard
+        text=texts.no_complete,
+        reply_markup=keyboards.superadmin_menu_keyboard_for_last(user_id),
     )
 
 
@@ -240,13 +243,13 @@ async def superadmin_no_complete(callback: CallbackQuery):
 async def superadmin_complete_callback(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_reply_markup()
-
+    user_id = int(callback.from_user.id)
     statement_id = int(callback.data.split("_")[-1])
     crud_statements.change_status(statement_id, 3)
     crud_statements.set_date_finish(statement_id, datetime.now() + timedelta(hours=3))
     await send_to_archive(statement_id)
     await callback.message.answer(
-        text=texts.sent_to_achieve, reply_markup=keyboards.superadmin_menu_keyboard
+        text=texts.sent_to_achieve, reply_markup=keyboards.menu_keyboard_role(user_id)
     )
 
 
@@ -608,10 +611,7 @@ async def add_new_user_due_date(message: Message, state: FSMContext):
     meters = message.text
 
     office_db = Offices(
-        address=address,
-        office_number=office_number,
-        coder_number=None,
-        meters=meters
+        address=address, office_number=office_number, coder_number=None, meters=meters
     )
     office_id = crud_offices.create_office(office_db)
     user = Users(
@@ -642,8 +642,7 @@ async def work_with_db_callback(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
     await callback.message.answer(
-        text=texts.work_with_db_text,
-        reply_markup=keyboards.work_with_db_keyboard
+        text=texts.work_with_db_text, reply_markup=keyboards.work_with_db_keyboard
     )
 
 
@@ -652,7 +651,9 @@ async def superuser_get_db(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_reply_markup()
     file = FSInputFile("bot/db/db.db")
-    await callback.message.answer_document(document=file, reply_markup=keyboards.superadmin_menu_keyboard)
+    await callback.message.answer_document(
+        document=file, reply_markup=keyboards.superadmin_menu_keyboard
+    )
     # await callback.message.answer_document(
     #     InputFile("bot/db/db.db")
     # )
@@ -667,7 +668,9 @@ class UpdateDBStates(StatesGroup):
 async def prompt_for_db_update(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
     await callback_query.message.edit_reply_markup()
-    await callback_query.message.answer("Пожалуйста, отправьте новый файл базы данных (.db).")
+    await callback_query.message.answer(
+        "Пожалуйста, отправьте новый файл базы данных (.db)."
+    )
     await state.set_state(UpdateDBStates.waiting_for_db_file)
 
 
@@ -676,12 +679,13 @@ async def prompt_for_db_update(callback_query: CallbackQuery, state: FSMContext)
 async def update_db(message: Message, state: FSMContext):
     if not message.document:
         return await message.answer(
-            text="Отправьте документ",
-            reply_markup=keyboards.superadmin_menu_keyboard
+            text="Отправьте документ", reply_markup=keyboards.superadmin_menu_keyboard
         )
     document = message.document
     if not document.file_name.endswith(".db"):
-        return await message.answer("Это не файл базы данных. Пожалуйста, отправьте файл с расширением .db.")
+        return await message.answer(
+            "Это не файл базы данных. Пожалуйста, отправьте файл с расширением .db."
+        )
     try:
         await message.edit_reply_markup()
     except Exception:
@@ -703,7 +707,10 @@ async def update_db(message: Message, state: FSMContext):
     config.DB_CONNECTION_URL = new_db_url  # Обновляем URL соединения в config
     db.engine = create_engine(new_db_url, echo=True, pool_size=20)
     db.Base.metadata.bind = db.engine  # Перепривязываем metadata к новому движку
-    await message.answer(text="База данных успешно обновлена!", reply_markup=keyboards.superadmin_menu_keyboard)
+    await message.answer(
+        text="База данных успешно обновлена!",
+        reply_markup=keyboards.superadmin_menu_keyboard,
+    )
     await state.clear()  # Сброс состояния
 
 

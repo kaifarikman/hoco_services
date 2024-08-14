@@ -221,7 +221,22 @@ go_to_send_statement_keyboard_high = InlineKeyboardMarkup(
 def go_to_statement_by_statement_id(adm_type, statement_id):
     buttons = [
         [
-            InlineKeyboardButton(text="Перейти в заявку", callback_data=f"{adm_type}_statement_{statement_id}")
+            InlineKeyboardButton(
+                text="Перейти в заявку",
+                callback_data=f"{adm_type}_statement_{statement_id}",
+            )
         ]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def statement_sent_keyboard(statement_id):
+    buttons = [
+        [InlineKeyboardButton(text="Вернуться в главное меню", callback_data="start")],
+        [
+            InlineKeyboardButton(
+                text="Комментарий к заявке", callback_data=f"sent_answer_{statement_id}"
+            )
+        ],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)

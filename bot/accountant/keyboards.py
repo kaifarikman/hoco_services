@@ -78,7 +78,7 @@ def accountant_menu_keyboard(statements, page):
 
 
 def statement_keyboard(statement_id, superuser_type):
-    if superuser_type == 1:
+    if superuser_type in [1, 3]:
         buttons = [
             [
                 InlineKeyboardButton(text="Главное меню", callback_data="superadmin"),
@@ -148,14 +148,23 @@ def go_to_accountant_menu_keyboard(user_id, statement_id):
         menu = "superadmin"
     buttons = [
         [
-            InlineKeyboardButton(text="Продолжить ответ", callback_data=f"accountant_answer_statement_{statement_id}")
+            InlineKeyboardButton(
+                text="Продолжить ответ",
+                callback_data=f"accountant_answer_statement_{statement_id}",
+            )
         ],
         [
-            InlineKeyboardButton(text="Вернуться к заявке", callback_data=f"accountant_statement_{statement_id}")
+            InlineKeyboardButton(
+                text="Вернуться к заявке",
+                callback_data=f"accountant_statement_{statement_id}",
+            )
         ],
         [
-            InlineKeyboardButton(text="Выйти в меню бухгалтера", callback_data=menu)
-        ]
+            InlineKeyboardButton(
+                text="Завершить", callback_data=f"complete_superadmin_{statement_id}"
+            ),
+        ],
+        [InlineKeyboardButton(text="Выйти в меню бухгалтера", callback_data=menu)],
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -170,7 +179,12 @@ user_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=user_menu_buttons)
 
 def user_go_to_statements_keyboard(statement_id):
     buttons = [
-        [InlineKeyboardButton(text="Перейти в заявку", callback_data=f"my_user_statements_{statement_id}")],
-        [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")]
+        [
+            InlineKeyboardButton(
+                text="Перейти в заявку",
+                callback_data=f"my_user_statements_{statement_id}",
+            )
+        ],
+        [InlineKeyboardButton(text="Мои заявки", callback_data="my_statements")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)

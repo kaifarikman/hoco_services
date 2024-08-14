@@ -12,7 +12,7 @@ def sort_by_date(statements: list[Statements]):
             if statement.date_finish + timedelta(hours=14) > now:
                 new_statements.append(statement)
             else:
-                print("___"*10)
+                print("___" * 10)
 
     return sorted(new_statements, key=lambda x: x.date_creation)[::-1]
 

@@ -17,6 +17,26 @@ superadmin_menu_buttons = [
 superadmin_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=superadmin_menu_buttons)
 
 
+def menu_keyboard_role(user_id):
+    menu = "superadmin"
+    if crud_superusers.get_superuser_role(user_id) == 3:
+        menu = "accountant"
+    buttons = [
+        [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def superadmin_menu_keyboard_for_last(user_id):
+    menu = "superadmin"
+    if crud_superusers.get_superuser_role(user_id) == 3:
+        menu = "accountant"
+    superadmin_menu_buttons = [
+        [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=superadmin_menu_buttons)
+
+
 def superadmin_keyboard(statements: list[Statements], page):
     buttons = []
     static_count = 30
@@ -83,13 +103,14 @@ def superadmin_keyboard(statements: list[Statements], page):
     give_role = InlineKeyboardButton(text="...", callback_data="superadmin_give_role")
     low_menu = [newsletter, archive, give_role]
     buttons.append(low_menu)
-    buttons.append(
-        [InlineKeyboardButton(text="БД", callback_data="work_with_db")]
-    )
+    buttons.append([InlineKeyboardButton(text="БД", callback_data="work_with_db")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def seriously_delete_keyboard(statement_id):
+def seriously_delete_keyboard(statement_id, user_id):
+    menu = "superadmin"
+    if crud_superusers.get_superuser_role(user_id) == 3:
+        menu = "accountant"
     buttons = [
         [
             InlineKeyboardButton(text="Нет", callback_data="superadmin_no_complete"),
@@ -97,7 +118,7 @@ def seriously_delete_keyboard(statement_id):
                 text="Да", callback_data=f"superadmin_complete_{statement_id}"
             ),
         ],
-        [InlineKeyboardButton(text="Главное меню", callback_data="superadmin")],
+        [InlineKeyboardButton(text="Главное меню", callback_data=menu)],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -254,14 +275,8 @@ users_change_buttons = [
 
 users_change = InlineKeyboardMarkup(inline_keyboard=users_change_buttons)
 work_with_db_buttons = [
-    [
-        InlineKeyboardButton(text="Получить Базу", callback_data="superuser_get_db")
-    ],
-    [
-        InlineKeyboardButton(text="Обновить Базу", callback_data="superuser_update_db")
-    ],
-    [
-        InlineKeyboardButton(text="Назад", callback_data="superadmin")
-    ],
+    [InlineKeyboardButton(text="Получить Базу", callback_data="superuser_get_db")],
+    [InlineKeyboardButton(text="Обновить Базу", callback_data="superuser_update_db")],
+    [InlineKeyboardButton(text="Назад", callback_data="superadmin")],
 ]
 work_with_db_keyboard = InlineKeyboardMarkup(inline_keyboard=work_with_db_buttons)

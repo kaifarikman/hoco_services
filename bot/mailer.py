@@ -1,4 +1,4 @@
-# Рассылка по пользователям о напоминании оплаты чтоли + показания счетчиков
+# Рассылка по пользователям о напоминании оплаты + показания счетчиков
 import bot.db.crud.users as crud_users
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -9,10 +9,7 @@ from bot.bot import bot
 async def send_message_(user_id, days_before):
     message = f"Уважаемый пользователь, до срока оплаты аренды осталось {days_before} дня(ей). Пожалуйста, убедитесь, что оплата будет произведена своевременно."
     try:
-        await bot.send_message(
-            chat_id=user_id,
-            text=message
-        )
+        await bot.send_message(chat_id=user_id, text=message)
     except Exception as e:
         print(e)
 
@@ -27,16 +24,13 @@ async def send_message2(user_id, current_day):
     else:
         return "botva"
     try:
-        await bot.send_message(
-            chat_id=user_id,
-            text=message
-        )
+        await bot.send_message(chat_id=user_id, text=message)
     except Exception as e:
         print(e)
 
 
 async def mailer():
-    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     days_before_list = [5, 2]
     all_users = crud_users.get_all_users()
     for user in all_users:
@@ -52,18 +46,22 @@ async def mailer():
                 scheduler.add_job(
                     send_message2,
                     CronTrigger(day=day, hour=12, minute=0),
-                    args=[user_id, day]
+                    args=[user_id, day],
                 )
         if user.rent_notification:
             due_date = user.due_date
             for days_before in days_before_list:
-                due_date_obj = datetime.now().replace(day=due_date, hour=14, minute=0, second=0, microsecond=0)
+                due_date_obj = datetime.now().replace(
+                    day=due_date, hour=14, minute=0, second=0, microsecond=0
+                )
                 task_date = due_date_obj - timedelta(days=days_before)
 
                 if task_date >= datetime.now():
                     scheduler.add_job(
                         send_message_,
-                        CronTrigger(day=task_date.day, month=task_date.month, hour=14, minute=0),
-                        args=[user_id, days_before]
+                        CronTrigger(
+                            day=task_date.day, month=task_date.month, hour=14, minute=0
+                        ),
+                        args=[user_id, days_before],
                     )
     scheduler.start()

@@ -10,6 +10,7 @@ from typing import List
 import bot.user.texts as texts
 import bot.user.keyboards as keyboards
 import bot.user.utils as utils
+import config
 
 from bot.db.models.messages import Messages as MessagesModel
 from bot.db.models.statements import Statements as StatementsModel
@@ -24,7 +25,6 @@ import bot.db.crud.superusers as crud_superusers
 
 from bot.bot import bot
 from datetime import datetime, timedelta
-
 
 """start help functions"""
 
@@ -90,7 +90,7 @@ async def send_pretty_statement(user_id, statement_id):
     if office_id is None:
         address = "Адрес требует уточнения"
     else:
-        address = f'{office.address}, офис №{office.office_number}'
+        address = f"{office.address}, офис №{office.office_number}"
 
     user = crud_users.read_user(statement.user_id)
     answer = f"{address}\nЗаявка №{statement.id}\nот {user.name}\n+{user.phone}\nТема: {statement.theme or 'отсутствует'}\n"
@@ -342,7 +342,7 @@ async def sent_to_admin(callback: CallbackQuery, state: FSMContext):
 
 @router.message(SentToAdmin.text)
 async def my_statement_sent(
-        message: Message, state: FSMContext, album: List[Message] = None
+    message: Message, state: FSMContext, album: List[Message] = None
 ):
     if message.voice or message.document:
         return await message.answer(
@@ -380,7 +380,7 @@ async def my_statement_sent(
         user_id=user_id,
         type_of_user=type_of_user,
         multimedia=multimedia,
-        date=datetime.now()+timedelta(hours=3),
+        date=datetime.now() + timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message_db)
 
@@ -403,7 +403,9 @@ async def my_statement_sent(
     for admin_id in superusers:
         await bot.send_message(
             text=f"Пользователь ответил на заявку №{statement_id}\n",
-            reply_markup=keyboards.go_to_statement_by_statement_id(admin_type, statement_id),
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                admin_type, statement_id
+            ),
             chat_id=admin_id,
         )
 
@@ -427,7 +429,7 @@ async def new_statement_callback(callback: CallbackQuery, state: FSMContext):
 
 @router.message(NewStatement.description)
 async def new_statement_description(
-        message: Message, state: FSMContext, album: List[Message] = None
+    message: Message, state: FSMContext, album: List[Message] = None
 ):
     if message.voice or message.document:
         return await message.answer(
@@ -448,11 +450,6 @@ async def new_statement_description(
         )
     data = "{{}}".join(lst)
 
-    await message.answer(
-        text=texts.application_sent_for_moderation,
-        reply_markup=keyboards.back_keyboard,
-    )
-
     user_id = int(message.from_user.id)
     type_of_user = "user"
     multimedia = data
@@ -470,7 +467,7 @@ async def new_statement_description(
         user_id=user_id,
         type_of_user=type_of_user,
         multimedia=multimedia,
-        date=datetime.now()+timedelta(hours=3),
+        date=datetime.now() + timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message_db)
 
@@ -479,7 +476,7 @@ async def new_statement_description(
         admin_id=None,
         task_type_id=1,
         messages=f"{message_id}",
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -490,13 +487,21 @@ async def new_statement_description(
     statement_id = crud_statements.create_statement(statement_db)
     crud_users.add_statement(user_id, statement_id)
 
+    await message.answer(
+        text=texts.application_sent_for_moderation,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
+    )
+
     adm_type = "admin"
     admins = crud_superusers.get_admins()
     admins += crud_superusers.get_superadmins()
     for admin_id in admins:
         await bot.send_message(
-            text="Пользователь оставил новую заявку.", chat_id=admin_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь оставил новую заявку.",
+            chat_id=admin_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
     await state.clear()
@@ -638,7 +643,9 @@ async def low_meter_readings(message: Message, state: FSMContext):
 
     await state.update_data({"readings": readings})
     await message.answer(
-        text=texts.check_reading(office_address, office_number, meter_type, readings, unit),
+        text=texts.check_reading(
+            office_address, office_number, meter_type, readings, unit
+        ),
         reply_markup=keyboards.go_to_send_statement_keyboard_high,
     )
     await state.set_state(HighMeterReadings.last)
@@ -650,16 +657,19 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     data = await state.get_data()
     await state.clear()
-    await callback.message.answer(
-        text=texts.meter_readings_sent_text, reply_markup=keyboards.back_keyboard
-    )
+
     user_id = int(callback.from_user.id)
 
     office_id, meter_id = map(int, data["data"])
     meter_type, unit = crud_meters.get_meter(meter_id)
-    multimedia = f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
+    multimedia = (
+        f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
+    )
     message = MessagesModel(
-        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()+timedelta(hours=3)
+        user_id=user_id,
+        type_of_user="user",
+        multimedia=multimedia,
+        date=datetime.now() + timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message)
     statement = StatementsModel(
@@ -667,7 +677,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=2,
         messages=f"{message_id}",
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -676,13 +686,20 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     )
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
+    await callback.message.answer(
+        text=texts.meter_readings_sent_text,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
+    )
     adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь подал показания счетчиков.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
 
@@ -721,7 +738,9 @@ async def low_meter_readings(message: Message, state: FSMContext):
     meter_type, unit = crud_meters.get_meter(meter_id)
     await state.update_data({"readings": readings})
     await message.answer(
-        text=texts.check_reading(office_address, office_number, meter_type, readings, unit),
+        text=texts.check_reading(
+            office_address, office_number, meter_type, readings, unit
+        ),
         reply_markup=keyboards.go_to_send_statement_keyboard_middle,
     )
     await state.set_state(MiddleMeterReadings.last)
@@ -733,15 +752,18 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     data = await state.get_data()
     await state.clear()
-    await callback.message.answer(
-        text=texts.meter_readings_sent_text, reply_markup=keyboards.back_keyboard
-    )
+
     user_id = int(callback.from_user.id)
     office_id, meter_id = map(int, data["data"])
     meter_type, unit = crud_meters.get_meter(meter_id)
-    multimedia = f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
+    multimedia = (
+        f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
+    )
     message = MessagesModel(
-        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()+timedelta(hours=3)
+        user_id=user_id,
+        type_of_user="user",
+        multimedia=multimedia,
+        date=datetime.now() + timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message)
     statement = StatementsModel(
@@ -749,7 +771,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=2,
         messages=f"{message_id}",
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -758,14 +780,20 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     )
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
-
+    await callback.message.answer(
+        text=texts.meter_readings_sent_text,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
+    )
     adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь подал показания счетчиков.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
 
@@ -794,7 +822,9 @@ async def low_meter_readings(message: Message, state: FSMContext):
     meter_type, unit = crud_meters.get_meter(meter_id)
     await state.update_data({"readings": readings})
     await message.answer(
-        text=texts.check_reading(office_address, office_number, meter_type, readings, unit),
+        text=texts.check_reading(
+            office_address, office_number, meter_type, readings, unit
+        ),
         reply_markup=keyboards.go_to_send_statement_keyboard,
     )
     await state.set_state(LowMeterReadings.last)
@@ -806,15 +836,18 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     data = await state.get_data()
     await state.clear()
-    await callback.message.answer(
-        text=texts.meter_readings_sent_text, reply_markup=keyboards.back_keyboard
-    )
+
     user_id = int(callback.from_user.id)
     office_id, meter_id = map(int, data["data"])
     meter_type, unit = crud_meters.get_meter(meter_id)
-    multimedia = f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
+    multimedia = (
+        f"text[]None[]Показания счетчиков «{meter_type}» - {data['readings']}{unit}"
+    )
     message = MessagesModel(
-        user_id=user_id, type_of_user="user", multimedia=multimedia, date=datetime.now()+timedelta(hours=3)
+        user_id=user_id,
+        type_of_user="user",
+        multimedia=multimedia,
+        date=datetime.now() + timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message)
     statement = StatementsModel(
@@ -822,7 +855,7 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=2,
         messages=f"{message_id}",
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -831,14 +864,20 @@ async def send_it_callback(callback: CallbackQuery, state: FSMContext):
     )
     statement_id = crud_statements.create_statement(statement)
     crud_users.add_statement(user_id, statement_id)
-
+    await callback.message.answer(
+        text=texts.meter_readings_sent_text,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
+    )
     adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь подал показания счетчиков.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь подал показания счетчиков.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
 
@@ -862,7 +901,7 @@ class RequestForOtherDocumentation(StatesGroup):
 
 @router.callback_query(F.data == "request_for_other_documentation")
 async def request_for_other_documentation_callback(
-        callback: CallbackQuery, state: FSMContext
+    callback: CallbackQuery, state: FSMContext
 ):
     await callback.answer()
     await callback.message.edit_reply_markup()
@@ -877,7 +916,7 @@ async def request_for_other_documentation_callback(
 
 @router.message(RequestForOtherDocumentation.request)
 async def request_for_other_documentation_request(
-        message: Message, state: FSMContext, album: List[Message] = None
+    message: Message, state: FSMContext, album: List[Message] = None
 ):
     if message.voice or message.document:
         return await message.answer(
@@ -897,10 +936,6 @@ async def request_for_other_documentation_request(
         )
     data = "{{}}".join(lst)
 
-    await message.answer(
-        text=texts.documentation_sent, reply_markup=keyboards.back_keyboard
-    )
-
     user_id = int(message.from_user.id)
     type_of_user = "user"
     multimedia = data
@@ -918,7 +953,7 @@ async def request_for_other_documentation_request(
         user_id=user_id,
         type_of_user=type_of_user,
         multimedia=multimedia,
-        date=datetime.now()+timedelta(hours=3),
+        date=datetime.now() + timedelta(hours=3),
     )
     message_id = crud_messages.create_message(message_db)
 
@@ -927,7 +962,7 @@ async def request_for_other_documentation_request(
         admin_id=None,
         task_type_id=3,
         messages=f"{message_id}",
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -937,13 +972,20 @@ async def request_for_other_documentation_request(
 
     statement_id = crud_statements.create_statement(statement_db)
     crud_users.add_statement(user_id, statement_id)
+    await message.answer(
+        text=texts.documentation_sent,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
+    )
     adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь оставил заявку на запрос прочей документации.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь оставил заявку на запрос прочей документации.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
     await state.clear()
 
@@ -967,7 +1009,7 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=4,
         messages=None,
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -979,15 +1021,19 @@ async def ku_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     crud_users.add_statement(user_id, statement_id)
 
     await callback.message.answer(
-        text=texts.ku_text, reply_markup=keyboards.back_keyboard
+        text=texts.ku_text,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
     )
     adm_type = "accountant"
     accountant = crud_superusers.get_accountants()
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь запросил начисление КУ.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь запросил начисление КУ.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
 
@@ -1010,7 +1056,7 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
         admin_id=None,
         task_type_id=5,
         messages=None,
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -1022,7 +1068,8 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     crud_users.add_statement(user_id, statement_id)
 
     await callback.message.answer(
-        text=texts.rent_accuracy_text, reply_markup=keyboards.back_keyboard
+        text=texts.rent_accuracy_text,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
     )
 
     adm_type = "accountant"
@@ -1030,14 +1077,17 @@ async def rent_accuracy_callback(callback: CallbackQuery, state: FSMContext):
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь запросил начисление аренды.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь запросил начисление аренды.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
 
 @router.callback_query(F.data == "request_for_reconciliation_report")
 async def request_for_reconciliation_report_callback(
-        callback: CallbackQuery, state: FSMContext
+    callback: CallbackQuery, state: FSMContext
 ):
     await callback.answer()
     await callback.message.edit_reply_markup()
@@ -1056,7 +1106,7 @@ async def request_for_reconciliation_report_callback(
         admin_id=None,
         task_type_id=6,
         messages=None,
-        date_creation=datetime.now()+timedelta(hours=3),
+        date_creation=datetime.now() + timedelta(hours=3),
         date_run=None,
         date_finish=None,
         theme=None,
@@ -1069,7 +1119,7 @@ async def request_for_reconciliation_report_callback(
 
     await callback.message.answer(
         text=texts.request_for_reconciliation_report_text,
-        reply_markup=keyboards.back_keyboard,
+        reply_markup=keyboards.statement_sent_keyboard(statement_id),
     )
 
     adm_type = "accountant"
@@ -1077,8 +1127,11 @@ async def request_for_reconciliation_report_callback(
     accountant += crud_superusers.get_superadmins()
     for accountant_id in accountant:
         await bot.send_message(
-            text="Пользователь оставил запрос Акта сверки.", chat_id=accountant_id,
-            reply_markup=keyboards.go_to_statement_by_statement_id(adm_type, statement_id)
+            text="Пользователь оставил запрос Акта сверки.",
+            chat_id=accountant_id,
+            reply_markup=keyboards.go_to_statement_by_statement_id(
+                adm_type, statement_id
+            ),
         )
 
 
@@ -1102,6 +1155,5 @@ async def create_me(message: Message):
 
 @router.message()
 async def echo_message(message: Message):
-    await message.answer(
-        text=texts.error_format_message
-    )
+    if message.chat.id != config.archive_group:
+        await message.answer(text=texts.error_format_message)
