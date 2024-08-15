@@ -16,7 +16,9 @@ def go_to_admin_menu_keyboard(user_id):
     menu = "admin"
     if crud_superusers.get_superuser_role(user_id) == 1:
         menu = "superadmin"
-    buttons = [[InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)]]
+    if crud_superusers.get_superuser_role(user_id) == 3:
+        menu = "accountant"
+    buttons = [[InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)]]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -36,7 +38,7 @@ def admin_answer_statement(user_id, statement_id):
                 callback_data=f"admin_statement_{statement_id}",
             )
         ],
-        [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)],
+        [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)],
     ]
     if crud_superusers.get_superuser_role(user_id) == 1:
         menu = "superadmin"
@@ -58,7 +60,7 @@ def admin_answer_statement(user_id, statement_id):
                     text="Завершить", callback_data=f"complete_superadmin_{statement_id}"
                 ),
             ],
-            [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)],
+            [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)],
         ]
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -130,10 +132,13 @@ def admin_menu_keyboard(statements: list[Statements], page):
 
 
 def statement_keyboard(statement_id, superuser_type):
-    if superuser_type == 1:
+    if superuser_type in [1, 3]:
+        menu = "accountant"
+        if superuser_type == 1:
+            menu = "superadmin"
         buttons = [
             [
-                InlineKeyboardButton(text="Главное меню", callback_data="superadmin"),
+                InlineKeyboardButton(text="Главное меню", callback_data=menu),
                 InlineKeyboardButton(
                     text="Тема", callback_data=f"select_statement_theme_{statement_id}"
                 ),
@@ -209,7 +214,9 @@ def newsletter_choice(addresses, page, user_id):
     menu = "admin"
     if crud_superusers.get_superuser_role(user_id) == 1:
         menu = "superadmin"
-    menu = [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)]
+    if crud_superusers.get_superuser_role(user_id) == 3:
+        menu = "accountant"
+    menu = [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)]
     buttons.append(menu)
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -218,13 +225,15 @@ def go_to_statement_menu(user_id, statement_id):
     menu = "admin"
     if crud_superusers.get_superuser_role(user_id) == 1:
         menu = "superadmin"
+    if crud_superusers.get_superuser_role(user_id) == 3:
+        menu = "accountant"
     buttons = [
         [
             InlineKeyboardButton(
                 text="Перейти к заявке", callback_data=f"admin_statement_{statement_id}"
             )
         ],
-        [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)],
+        [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

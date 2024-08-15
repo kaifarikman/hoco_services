@@ -158,7 +158,7 @@ def newsletter_choice(newsletters, page):
     configuration_field = [left_button, middle_button, right_button]
     buttons.append(configuration_field)
     menu = "superadmin"
-    menu = [InlineKeyboardButton(text="Выйти в админ меню", callback_data=menu)]
+    menu = [InlineKeyboardButton(text="Выйти в главное меню", callback_data=menu)]
     buttons.append(menu)
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -220,7 +220,7 @@ def select(superuser_id):
                 text="Удалить сотрудника", callback_data=f"delete_person_{superuser_id}"
             )
         ],
-        [InlineKeyboardButton(text="Выйти в меню", callback_data="superadmin")],
+        [InlineKeyboardButton(text="Выйти в главное меню", callback_data="superadmin")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
